@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/test.mjs"
+    "test": "node scripts/test.mjs",
+    "sheets:bridge": "node --env-file-if-exists=.env.local --import tsx scripts/sheets-bridge.ts"
   },
   "dependencies": {
     "next": "16.4.5",
@@ -25,5 +26,7 @@
     "@types/react-dom": "^19.0.0",
     "tsx": "^4.20.0"
   },
-  "engines": { "node": ">=22.0.0" }
+  "engines": {
+    "node": ">=22.0.0"
+  }
 }

@@ -1,0 +1,10 @@
+[
+  ["Gift ID", "Donor ID", "Donor name", "Email", "Phone", "Amount", "Gift date", "Channel"],
+  ["gift-online-101", "donor-rosa-online", "Rosa Delgado", "rosa@example.test", "+1-305-555-0101", 125, "2026-07-10", "online"],
+  ["gift-ticket-201", "donor-rosa-tickets", "Rosa M. Delgado", "rosa@example.test", "+1-305-555-0101", 80, "2026-08-03", "tickets"],
+  ["gift-auction-301", "donor-rosa-auction", "R. Delgado", "rosa@example.test", "", 250, "2026-09-06", "auction"],
+  ["gift-check-401", "donor-rosa-online", "Rosa Delgado", "rosa@example.test", "+1-305-555-0101", 50, "2026-09-20", "check"],
+  ["gift-check-402", "donor-rosa-other", "Rosa Delgado", "another.rosa@example.test", "+1-305-555-0199", 30, "2026-09-21", "check"],
+  ["gift-jules-july", "donor-jules", "Jules Pierre", "jules@example.test", "+1-305-555-0112", 50, "2026-07-28", "online"],
+  ["gift-jules-august", "donor-jules", "Jules Pierre", "jules@example.test", "+1-305-555-0112", 50, "2026-08-28", "online"]
+]
