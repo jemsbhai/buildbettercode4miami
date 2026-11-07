@@ -2,7 +2,7 @@
 
 Prepared November 7, 2026. This is the submission checklist and reviewer material, not evidence of approval. Use [the release record](PUBLIC-RELEASE-2026-11-07.md) for verified deployment/test results, [the release runbook](PUBLIC-ADDON-RELEASE.md) for native acceptance and [the listing draft](PUBLIC-ADDON-LISTING.md) for store copy.
 
-The publisher has completed native authorization, Google Picker and an initial import in a fresh test workbook after the transport-header fix. Domain ownership has been verified. The complete native acceptance record, immutable submitted version, OAuth verification, listing submission and public installation remain separate gates. A successful development test does not establish public availability.
+The publisher has completed native authorization, Google Picker, imports and approved standard/AI report writes in a fresh test workbook after the transport-header fix. Domain ownership has been verified. An immutable version 1 and Marketplace listing draft are saved. See the release record for the precise acceptance coverage. OAuth verification, submission and public installation remain separate gates; a successful development test does not establish public availability.
 
 ## Approved publisher fields
 
@@ -19,7 +19,7 @@ The publisher has completed native authorization, Google Picker and an initial i
 | Script ID | `1v01mOjaBs8PKYubESf1PSwcYWFfrmsc_9wuckpO8HPxXcTdtrmO_9s3Q` |
 | Native ID-token audience | `397160375233-rdjvptver6ofn1gvqh9e7dagoqakir70.apps.googleusercontent.com` |
 | Web callback | `https://tidepath-sheets.vercel.app/api/auth/google/callback` |
-| Submitted script version | Pending final native acceptance and version creation |
+| Draft-configured script version | 1; saved in the Sheets Editor add-on SDK configuration, not submitted |
 
 Use **Tidepath** as the app title; the longer compatibility title was rejected by Google's consent configuration. Descriptive text can say **for Google Sheets™**, with the attribution **Google Sheets™ is a trademark of Google LLC.** Keep the consent title, script title and Marketplace title identical. [Google compatibility-branding guidance](https://developers.google.com/workspace/marketplace/terms/branding).
 
@@ -56,9 +56,13 @@ No additional legal identity or pricing input is currently missing. The owner mu
 
 The current-document scope cannot authorize the server's Sheets REST operations; this is why per-file Picker permission is also required. All-Drive and all-spreadsheet scopes are unnecessary. The browser receives no ID token; only the supported Picker integration receives a short-lived OAuth token. Google tokens are not persisted, exposed in cells or sent to OpenAI. [Editor scope restrictions](https://developers.google.com/workspace/add-ons/concepts/editor-scopes), [Apps Script Picker requirements](https://developers.google.com/apps-script/guides/dialogs#file-open_dialogs).
 
+**Observed SDK identity-scope discrepancy:** after the publisher entered the six scopes and saved App Configuration, the console displayed `userinfo.email`, `userinfo.profile` and the four functional scopes, while omitting `openid`. This is a recorded console result, not a verified equivalence between `openid` and `profile`. The six manifest/request scopes remain unchanged. Do not add profile access to the application solely to match the SDK display: Google explicitly requires `openid` for `ScriptApp.getIdentityToken()` and treats profile as additional information. Preserve the intended scope declaration and saved-console evidence for review/support clarification before claiming exact alignment. [ScriptApp identity-token requirements](https://developers.google.com/apps-script/reference/script/script-app#getIdentityToken()), [SDK scope alignment guidance](https://developers.google.com/workspace/marketplace/enable-configure-sdk#specify_the_level_of_access_that_your_app_requires).
+
 ### Verification video outline
 
-If Google requires a scope demonstration, record the real release in English, upload it as an unlisted YouTube video and provide the link privately in the review form. Show the consent app name and client ID in the address bar, authorization, sign-in if used, and the feature enabled by each requested scope. These are Google's [sensitive-scope video requirements](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification).
+The publisher has now observed `script.container.ui` and `script.external_request` classified as sensitive and unverified. A real demonstration video is required for this submission; no scope-specific waiver was found. [PUBLIC-ADDON-VIDEO.md](PUBLIC-ADDON-VIDEO.md) gives copy-ready justifications, the available local recording option and a precise operator handoff.
+
+Record the real release in English, upload it as an unlisted YouTube video and provide the link privately in the review form. Show the consent app name and client ID in the address bar, authorization, both OAuth client flows, and the feature enabled by each requested scope. These are Google's [sensitive-scope video requirements](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification).
 
 Use a dedicated test account and fictional rows. Never record token values, developer secrets or real donor records. The following shot list is specific to Tidepath:
 
@@ -77,6 +81,8 @@ Open the **Google Workspace Marketplace SDK**, not the similarly named licensing
 In **Store Listing**, use the approved [listing copy](PUBLIC-ADDON-LISTING.md), English language, the most relevant available category, **Free of charge** pricing, real support/privacy/terms links, icons and native screenshots. Choose intended distribution regions deliberately. Save the draft while review evidence is incomplete. After applicable OAuth approval and final acceptance, **Submit For Review**. Record the status and correspondence; the public listing is published after approval. Organization installation restrictions can still apply. [Store listing workflow](https://developers.google.com/workspace/marketplace/create-listing), [public publishing process](https://developers.google.com/workspace/marketplace/how-to-publish).
 
 ## Reproducible reviewer workbook
+
+The Store Listing draft was saved with the approved English copy, **Free of charge**, **Office Applications**, **All Regions**, canonical support/policy links, the post-install tip, 32/128 icons, 220×140 banner and the real version-1 AI report screenshot at 1280×800. The console confirmed **Draft saved** and disabled Save Draft after persistence. Local evidence is `.data/public-marketplace-draft-saved.png`; the uploaded native image is `.data/public-native-version1-ai-1280x800.png`. No review submission or new legal acceptance was performed. Optional web-app icons, admin configuration, draft testers and promotional video were left blank.
 
 The reviewer can create a new Sheet in their own account and paste this fictional table in A1. This is an optional reproducible fixture, not a claim that the publisher's separate native test used these exact rows. Format dates as dates, map the six headers, select A1:F5, use dollars, USD and reporting dates **2026-10-01 through 2026-10-31**. Leave donor ID and phone unmapped.
 
@@ -113,7 +119,7 @@ Provide reviewers direct test-install/access instructions accepted by the submis
 | Consent/Data Access/Marketplace scopes | Six-scope comparison plus actual console classifications |
 | Branding/data-access review/production status | Dated screenshots or status records; no inferred approvals |
 | Native listing screenshots | Real 1280×800 captures of mapping, evidence review and approved output; original brand assets already prepared |
-| Scope video if required | Unlisted review URL, recording date and tested script/backend identifiers |
+| Required sensitive-scope video | Working review URL, recording date and tested script/backend identifiers; see PUBLIC-ADDON-VIDEO.md |
 | Retention and backup disclosure | Observed scheduled hosted cleanup plus actual provider backup duration; see PUBLIC-DATABASE.md |
 | Marketplace SDK draft | Sheets Editor integration, exact version, public visibility, installation settings, approved developer fields |
 | Submitted listing | Submission date, status/reference and reviewer requests; pending until an actual submission |
