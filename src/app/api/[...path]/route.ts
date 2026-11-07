@@ -1,20 +1,34 @@
 import { z, ZodError } from "zod";
-import { randomUUID } from "node:crypto";
-import { prepareDraft } from "@/lib/agent";
+import { assertResetAllowed, generateDraft, replayRun } from "@/lib/generation";
 import { decideMerge, importGiftCsv, recordAttendance } from "@/lib/domain";
-import { approveDisclosure, createDisclosure, exportDisclosure, getNote, saveNote } from "@/lib/programs";
+import { approveDisclosure, createDisclosure, exportDisclosure, getGrantLedgers, getNote, recordExpense, saveNote } from "@/lib/programs";
 import { AppError, approveDraft, dashboard, editDraft, exportDraft, simulateDelivery } from "@/lib/service";
 import { mutateState, readState, resetState } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ path: string[] }> };
-const globalGate = globalThis as typeof globalThis & { tidepathGenerating?: boolean };
 const response = (value: unknown, status = 200) => Response.json(value, { status, headers: { "Cache-Control": "no-store" } });
 
 async function body(request: Request) {
-  const text = await request.text();
-  if (text.length > 1_000_000) throw new AppError("Request exceeds the demo's one-megabyte limit.", 413);
+  const limit = 1_000_000;
+  const tooLarge = () => new AppError("Request exceeds the demo's one-megabyte limit.", 413);
+  if (Number(request.headers.get("content-length")) > limit) throw tooLarge();
+  const reader = request.body?.getReader();
+  if (!reader) throw new AppError("Request body must be valid JSON.");
+  const decoder = new TextDecoder();
+  let text = "";
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > limit) { await reader.cancel(); throw tooLarge(); }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+  } finally { reader.releaseLock(); }
   try { return JSON.parse(text); } catch { throw new AppError("Request body must be valid JSON."); }
 }
 
@@ -35,8 +49,7 @@ async function handle(request: Request, context: Context) {
   if (method !== "GET") guardOrigin(request);
   if (method === "GET" && resource === "dashboard" && path.length === 1) return response(dashboard(readState()));
   if (method === "POST" && resource === "reset" && path.length === 1) {
-    if (globalGate.tidepathGenerating) throw new AppError("Wait for the active draft before resetting.", 409);
-    return response(dashboard(resetState()));
+    return response(dashboard(resetState(assertResetAllowed)));
   }
   if (method === "POST" && resource === "merge" && path.length === 1) {
     const input = z.object({ candidateId: z.string(), decision: z.enum(["approve", "reject"]) }).strict().parse(await body(request));
@@ -52,26 +65,17 @@ async function handle(request: Request, context: Context) {
   }
   if (resource === "drafts" && method === "POST" && path.length === 1) {
     const input = z.object({ kind: z.enum(["report", "followup", "application"]), queueItemId: z.string().optional(), grantId: z.string().optional(), mode: z.enum(["demo", "live"]) }).strict().parse(await body(request));
-    if (globalGate.tidepathGenerating) throw new AppError("A draft is already running. Please wait.", 409);
-    const snapshot = readState();
-    if (input.mode === "live" && snapshot.runs.filter(run => run.mode === "live").length >= 12) throw new AppError("This demo session has reached its twelve live-run limit. Use demo mode.", 429);
-    globalGate.tidepathGenerating = true;
-    try {
-      const prepared = await prepareDraft(snapshot, input);
-      return response(mutateState(state => {
-        if (state.revision !== snapshot.revision) throw new AppError("Records changed during drafting. Generate a fresh draft.", 409);
-        state.drafts.unshift(prepared.draft);
-        state.runs.unshift(prepared.run);
-        return { draft: prepared.draft, dashboard: dashboard(state) };
-      }));
-    } catch (error) {
-      if (error instanceof AppError) throw error;
-      if (input.mode === "demo") throw error;
-      mutateState(state => {
-        state.runs.unshift({ id: randomUUID(), mode: "live", model: process.env.OPENAI_MODEL || "gpt-5.4-mini", status: "failed", events: [{ id: randomUUID(), at: new Date().toISOString(), action: "run_failed", detail: "Live generation failed. No draft or external action was created.", sourceIds: [] }], inputTokens: 0, outputTokens: 0, maxTurns: 3, durationMs: 0 });
-      });
-      throw new AppError("Live generation failed. Check the server's API key/model access or retry in demo mode. No draft was approved.", 502);
-    } finally { globalGate.tidepathGenerating = false; }
+    return response(await generateDraft(input, request.headers.get("idempotency-key") ?? undefined));
+  }
+  if (resource === "runs" && id && method === "GET" && (path.length === 2 || (path.length === 3 && action === "replay"))) return response(replayRun(readState(), id));
+  if (resource === "grants" && id && action === "ledger" && method === "GET" && path.length === 3) {
+    const ledger = getGrantLedgers(readState()).find(ledger => ledger.grantId === id);
+    if (!ledger) throw new AppError("Grant not found.", 404);
+    return response({ ledger });
+  }
+  if (resource === "grants" && id && action === "expenses" && method === "POST" && path.length === 3) {
+    const input = z.object({ id: z.string().min(1).max(120), date: z.string(), category: z.string().min(1).max(100), amountCents: z.number().int().positive().max(Number.MAX_SAFE_INTEGER), description: z.string().min(1).max(1000) }).strict().parse(await body(request));
+    return response(mutateState(state => ({ ...recordExpense(state, id, input), dashboard: dashboard(state) })));
   }
   if (resource === "drafts" && id) {
     if (method === "PATCH" && path.length === 2) {
@@ -94,7 +98,7 @@ async function handle(request: Request, context: Context) {
     return response(mutateState(state => ({ note: getNote(state, id), dashboard: dashboard(state) })));
   }
   if (resource === "notes" && id && path.length === 2 && method === "PATCH") {
-    const input = z.object({ goal: z.string().min(1).max(2000), progress: z.string().min(1).max(4000), privateDetail: z.string().max(4000), durationMinutes: z.number().int().min(1).max(240) }).strict().parse(await body(request));
+    const input = z.object({ goal: z.string().min(1).max(2000), progress: z.string().min(1).max(4000), privateDetail: z.string().max(4000), durationMinutes: z.number().int().min(1).max(480), expectedNoteHash: z.string().regex(/^[a-f0-9]{64}$/u).optional() }).strict().parse(await body(request));
     return response(mutateState(state => ({ note: saveNote(state, id, input), dashboard: dashboard(state) })));
   }
   if (resource === "disclosures" && method === "POST" && path.length === 1) {
@@ -117,6 +121,7 @@ async function dispatch(request: Request, context: Context) {
   catch (error) {
     if (error instanceof ZodError) return response({ error: "Invalid request.", issues: error.issues.map(issue => ({ code: "invalid_input", message: `${issue.path.join(".")}: ${issue.message}` })) }, 400);
     if (error instanceof AppError) return response({ error: error.message, issues: error.issues }, error.status);
+    if (error instanceof Error && "code" in error) return response({ error: "The local demo store could not complete the request. Check server storage and retry." }, 500);
     // Domain errors contain validation text only; provider exceptions are sanitized above.
     return response({ error: error instanceof Error ? error.message : "The request could not be completed." }, 400);
   }

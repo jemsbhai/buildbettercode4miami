@@ -42,6 +42,7 @@ The grant example uses a **120-word answer limit**, counting narrative and rende
 - [Teammate A: operations and counseling](docs/TEAMMATE-A.md)
 - [Teammate B: reports and grants](docs/TEAMMATE-B.md)
 - [Copy-paste team handoff](docs/TEAM-HANDOFF.md)
+- [Backend contracts and frontend integration priorities](docs/BACKEND-HANDOFF.md)
 - [Demo script](docs/DEMO.md)
 - [Decisions and boundaries](docs/DECISIONS.md)
 
@@ -54,14 +55,17 @@ One Next.js + TypeScript application; shared request/response types live in `src
 - `seed.ts` / `programs.ts`: deterministic fictional data and row-level source references.
 - `domain.ts`: exact-cent gift records, contact-based merge candidates, attendance/late-gift rules and metric validation.
 - `agent.ts`: a bounded OpenAI Agents SDK run with a read-only evidence tool and structured draft output. It cannot approve, send, merge, or read counseling bodies.
+- `generation.ts` / `evidence.ts`: persisted generation reservations, request-key retries, scoped evidence fingerprints and recorded-run integrity checks.
 - `service.ts`: revision-aware editing/approval, approved export and idempotent simulated delivery.
 - `programs.ts`: funder-year ledgers, application limits, note access, allowlisted disclosure and payload-bound approvals.
 - `store.ts`: atomic file replacement, with synchronous transactions inside one Node process.
 - `src/app/api/[...path]/route.ts`: validated endpoints used by every workspace.
 
-Live runs have a maximum of three turns, 1,600 output tokens per model turn and a 45-second timeout, with one generation in flight and twelve live attempts per reset session. These are request limits, not a hard dollar budget. The app records events and returned token usage; a failed request may still incur provider usage that is not available in the failed-run record. Hosted tracing is disabled; the local timeline exposes tool evidence and results. Inspecting a recorded run is not stochastic model regeneration.
+Live runs allow three initial turns and one optional repair turn, with 1,600 output tokens per model turn under a shared 45-second deadline. Transport retries are disabled. One generation runs at a time; twelve live attempts are allowed per reset session, including failed attempts. Reservations survive a restart and interrupted jobs recover after their 90-second lease. These are request limits, not a hard dollar budget. Token checkpoints are retained, and `usageKnown: false` identifies incomplete or unavailable provider usage. Hosted tracing is disabled. The recorded input, output and validation attempts can be read through `GET /api/runs/:id/replay` without another model request.
 
-Numeric facts are structured metric references and checked on the server. Unbound numbers in narrative are conservatively blocked. This is **not a general truth detector**: staff still review qualitative prose. Approval is invalidated by edits or a changed data revision. Counseling filtering is deterministic and does not ask a model to decide what to disclose.
+Clients can attach an `Idempotency-Key` to `POST /api/drafts` and reuse it with the same body after a network interruption. Completed retries return the saved result with `replayed: true`. Reusing a running or failed key, or using a key with different input, returns an explanatory conflict instead of silently starting another live attempt. Recorded-run hashes check saved input/output consistency; they do not authenticate the record or rerun the model. The [backend handoff](docs/BACKEND-HANDOFF.md) specifies response shapes, retry behavior and the frontend labels required for partial or unknown token usage. [Verification](docs/VERIFICATION.md) records 94 passing tests, the successful production build and 74 passing HTTP checks, including real report, application and follow-up calls. New frontend controls still need browser rehearsal after teammate integration.
+
+Numeric facts are structured metric references and checked on the server. Unbound numbers in narrative are conservatively blocked. This is **not a general truth detector**: staff still review qualitative prose. Approval binds exact content to the evidence it used: relevant changes require new review, while unrelated note or donor edits preserve validity. Counseling filtering is deterministic and does not ask a model to decide what to disclose. It also blocks complete private details copied into permitted fields, without claiming to detect paraphrases or every sensitive passage.
 
 ## Import format
 
@@ -88,7 +92,7 @@ node scripts/smoke.mjs
 node scripts/smoke.mjs --live
 ```
 
-Set `TIDEPATH_URL` for a different local port. The smoke script **resets local demo state** at the beginning and end. `--live` makes a real, bounded API call using the configured key. The checks exercise source calculations, approval bypass attempts, word limits, disclosure leaks, replayed imports, simulated delivery, and stale records. Use only fictional data.
+Set `TIDEPATH_URL` for a different local port. The smoke script **resets local demo state** at the beginning and end. `--live` makes real, bounded calls for report, application and follow-up drafts using the configured key. The checks exercise source calculations, approval bypass attempts, word limits, disclosure leaks, replayed imports, simulated delivery, expenses, recorded runs and stale records. Use only fictional data. Set `TIDEPATH_STATE_FILE` to a separate local file when starting a verification server so tests do not overwrite a presenter’s session.
 
 ## Demo boundaries and submission
 
