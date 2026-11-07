@@ -1,0 +1,16 @@
+# Dedicated public-service site only. Keep account billing on the credit-based Free plan.
+# Runtime secrets and TIDEPATH_PUBLIC_SERVICE=1 must also be set in the site's environment.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24"
+  TIDEPATH_PUBLIC_SERVICE = "1"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[functions."public-retention"]
+  schedule = "15 5 * * *"

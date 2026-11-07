@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
+const hostedBuild = Boolean(process.env.VERCEL || process.env.NETLIFY);
 const config: NextConfig = {
-  // Keep local public builds away from the running demo; Vercel's Next adapter expects .next.
-  distDir: process.env.TIDEPATH_PUBLIC_SERVICE === "1" && !process.env.VERCEL ? ".next-public" : ".next",
-  outputFileTracingExcludes: { "/*": ["./.data/**/*", "./.env*", "./.git/**/*", "./.vercel/**/*", "./tests/**/*", "./integrations/**/*", "./docs/**/*", ...(!process.env.VERCEL ? ["./.next/**/*"] : [])] },
+  // Keep local public builds away from the demo; hosted Next adapters expect .next.
+  distDir: process.env.TIDEPATH_PUBLIC_SERVICE === "1" && !hostedBuild ? ".next-public" : ".next",
+  outputFileTracingExcludes: { "/*": ["./.data/**/*", "./.env*", "./.git/**/*", "./.vercel/**/*", "./.netlify/**/*", "./tests/**/*", "./integrations/**/*", "./docs/**/*", ...(!hostedBuild ? ["./.next/**/*"] : [])] },
   async headers() {
     return [{ source: "/:path*", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },
