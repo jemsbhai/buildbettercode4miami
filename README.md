@@ -4,11 +4,15 @@
 
 Built for the [DevDay Exchange Miami nonprofit challenges](https://docs.google.com/document/d/1dTh6wVOAtDjGyCIVv28Pm94Yfz8Z4kGo8DFhRNDpgsw/edit), covering a bounded slice of **1 + 2 + 6 + 4**. All people, gifts, funders, and sessions in this app are fictional.
 
+Public repository: [jemsbhai/buildbettercode4miami](https://github.com/jemsbhai/buildbettercode4miami). Start from the default branch, `codex/tidepath-mvp`. Contributors without write access can fork the repository and submit pull requests back to that branch.
+
 ## Run locally
 
 Requires **Node.js 22+** (24 recommended) and npm. The current OpenAI Agents SDK requires Node 22 even though Next.js itself accepts older versions.
 
 ```sh
+git clone https://github.com/jemsbhai/buildbettercode4miami.git
+cd buildbettercode4miami
 npm ci
 npm run dev
 ```
@@ -37,6 +41,7 @@ The grant example uses a **120-word answer limit**, counting narrative and rende
 - [Build plan and acceptance gates](docs/BUILD-PLAN.md)
 - [Teammate A: operations and counseling](docs/TEAMMATE-A.md)
 - [Teammate B: reports and grants](docs/TEAMMATE-B.md)
+- [Copy-paste team handoff](docs/TEAM-HANDOFF.md)
 - [Demo script](docs/DEMO.md)
 - [Decisions and boundaries](docs/DECISIONS.md)
 
@@ -89,4 +94,4 @@ Set `TIDEPATH_URL` for a different local port. The smoke script **resets local d
 
 This is a local, single-operator hackathon app. It has no authentication, independent reviewer identity, multi-instance database or clinical security boundary. The counselor role in audit entries is a demo actor. Do not use it for real counseling records; a pilot needs authenticated roles, a transactional store, access controls, and a reviewed retention/deployment design. Approved funder copies are exported, not submitted. The follow-up outbox visibly simulates delivery and does not prove deliverability to a real recipient.
 
-The [organizer page](https://luma.com/codexmiami) lists Codex, OpenAI API and OpenAI Agents SDK. It lists the event ending Sunday, November 8, at 9 PM Eastern; the actual submission cutoff and judging rubric still need confirmation. The challenge overview requires a public GitHub repository with MIT or Apache 2.0 licensing by submission. This folder is a local Git repository with an MIT license; public publication and submission remain separate steps.
+The [organizer page](https://luma.com/codexmiami) lists Codex, OpenAI API and OpenAI Agents SDK. It lists the event ending Sunday, November 8, at 9 PM Eastern; the actual submission cutoff and judging rubric still need confirmation. The challenge overview requires a public GitHub repository with MIT or Apache 2.0 licensing by submission. The public repository includes an MIT license. Event submission remains unfinished.
