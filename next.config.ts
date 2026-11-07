@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   // Keep local public builds away from the running demo; Vercel's Next adapter expects .next.
   distDir: process.env.TIDEPATH_PUBLIC_SERVICE === "1" && !process.env.VERCEL ? ".next-public" : ".next",
-  outputFileTracingExcludes: { "/*": ["./.data/**/*", "./.env*", "./.git/**/*", "./.vercel/**/*", "./.next/**/*", "./tests/**/*", "./integrations/**/*", "./docs/**/*"] },
+  outputFileTracingExcludes: { "/*": ["./.data/**/*", "./.env*", "./.git/**/*", "./.vercel/**/*", "./tests/**/*", "./integrations/**/*", "./docs/**/*", ...(!process.env.VERCEL ? ["./.next/**/*"] : [])] },
   async headers() {
     return [{ source: "/:path*", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },
