@@ -8,7 +8,8 @@ This is the target script. Rehearse against the implemented build and remove any
 - Run reset once, verify the seed date and reporting quarter, and close unrelated tabs.
 - Confirm Rosa is pending, the participant and both donors appear in the queue, and the starting gift total is visible.
 - Decide the mode in advance. A live run uses the configured OpenAI Agents SDK integration; `demo` uses a labeled deterministic response. Test both before presenting.
-- Verify the wrong-claim block, current revision approval and export. Make sure no previous edit has left the scenario in an unexpected state.
+- Verify the wrong-claim block, current evidence approval and export. Make sure no previous edit has left the scenario in an unexpected state.
+- Check [the backend handoff](BACKEND-HANDOFF.md) before integrating new controls. The backend passed 94 tests, the production build and 74 HTTP checks, including real report/application/follow-up calls. No new browser walkthrough was performed; rehearse each new frontend action after wiring it.
 - Keep a short local recording as an optional contingency, labeled as recorded. Do not imply it is a live execution.
 - Submit before **Sunday, November 8, 2026, 4:45 PM Eastern**, the cutoff supplied by Liam. Confirm the allowed demo duration with the organizer; the event's 9 PM closing time is separate.
 
@@ -20,7 +21,7 @@ This is the target script. Rehearse against the implemented build and remove any
 | 0:20–0:55 | “These three records may be Rosa. Staff see the evidence and decide.” | Approve the candidate. Show fewer unique donors, preserved gift history and unchanged money. |
 | 0:55–1:30 | “This participant has missed two completed sessions. We can call before the third. These donors also need follow-up, with evidence attached.” | Open the queue, show reasons and draft/approve a follow-up. If implemented, show a clearly labeled simulated outbox receipt. |
 | 1:30–2:10 | “The same records support a report and this funder's application. A wrong figure cannot be approved.” | Show a report metric's evidence. Open application, introduce a wrong claim, save and attempt approval; correct and approve. Show the complete-answer word limit. |
-| 2:10–2:40 | “The funder's year starts in July. These expenses count, these are outside that year, and this category is over budget.” | Show fiscal dates, over-budget/near-limit states and the disallowed category. |
+| 2:10–2:40 | “The funder's year starts in July. We count actual spending through this date, separate upcoming costs, and flag budget or category exceptions.” | Show funder dates, as-of date, over-budget/near-limit states and disallowed/outside-year expenses. If the add-expense form is integrated, save a transport expense and show the server-calculated warning change. |
 | 2:40–3:25 | “The counselor writes the note once. This private detail stays internal; the funder gets only its required fields.” | Open an audited note, generate the exact funder preview, point to omitted private detail, approve its payload and show the nonpayable-session block. |
 | 3:25–4:00 | “We can inspect what the agent read, what it drafted and exactly what staff approved. The result is timely follow-up and less copying, with evidence and disclosure controls.” | Show recorded run/audit events and approved export. Close on the staff outcome. |
 
@@ -35,6 +36,8 @@ Use the actual metric IDs and values present in the build; do not memorize a tot
 - Claim Challenge 4 coverage only after showing the week of notes and exact counselor preview. Describe exports and simulated delivery accurately.
 - Say **“fictional scenario demonstrates the workflow”**, not an unmeasured claim that the product saved a nonprofit days of work.
 - Say **“local single-process demo”** if asked about deployment; production multi-user access, authentication and transactional storage are follow-up work.
+- Say **“approval tracks the evidence used for this output.”** Relevant evidence changes require review again; unrelated edits need not invalidate it. An unchanged note save is a no-op.
+- Say **“required-field filtering plus a narrow copied-text check.”** The check blocks a complete private detail pasted into a shared field; it is not a detector for every sensitive sentence or paraphrase.
 
 ## Likely judge questions
 
@@ -51,3 +54,5 @@ Use the actual metric IDs and values present in the build; do not memorize a tot
 ## Rehearsal gate
 
 Run the complete flow twice from reset, then once after restarting the server. A second presenter should be able to follow this script without terminal data edits. Prefer fixing the first confusing or failing moment over adding another feature.
+
+Exercise the failure paths before presenting: retry the same expense ID without double-counting; keep a future expense out of spent totals; preserve an approval after an unchanged note save; invalidate it after changing that note; block a complete private detail pasted into progress; and retry an exact disclosure approval without duplicate events. These backend cases have automated coverage. Rehearse the corresponding UI actions once teammates integrate them.

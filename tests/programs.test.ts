@@ -45,6 +45,9 @@ test("grant ledger uses inclusive funder-year boundaries and separates disallowe
   assert.deepEqual(ledger.disallowed.map((expense) => expense.id), ["expense-disallowed"]);
   assert.deepEqual(ledger.outsidePeriod.map((expense) => expense.id), ["expense-before-year", "expense-after-year"]);
   state.expenses.push({ id: "end-boundary", grantId: state.grants[0].id, category: "transport", amountCents: 100, date: "2027-06-30", description: "Inclusive fiscal end", sourceIds: [] });
+  assert.equal(getGrantLedgers(state)[0].categories.find((category) => category.name === "transport")!.spentCents, 35_000);
+  assert.deepEqual(getGrantLedgers(state)[0].upcoming?.map((expense) => expense.id), ["end-boundary"]);
+  state.asOf = "2027-06-30";
   assert.equal(getGrantLedgers(state)[0].categories.find((category) => category.name === "transport")!.spentCents, 35_100);
 });
 
@@ -80,15 +83,20 @@ test("approval binds to the exact preview hash; export requires approval", () =>
   assert.equal(approved.status, "approved");
   assert.deepEqual(exportDisclosure(state, preview.id), preview.payload);
   assert.doesNotMatch(JSON.stringify(exportDisclosure(state, preview.id)), /PRIVATE_SENTINEL/);
-  assert.throws(() => approveDisclosure(state, preview.id, preview.payloadHash), /already been approved/);
+  const auditCount = state.audit.length;
+  assert.deepEqual(approveDisclosure(state, preview.id, preview.payloadHash), approved);
+  assert.equal(state.audit.length, auditCount, "approval retries must not duplicate audit actions");
 });
 
-test("source revision changes block both preview approval and already-approved export", () => {
+test("unrelated revision changes preserve scoped approval but legacy previews remain conservative", () => {
   const state = fixture();
   const preview = createDisclosure(state, state.notes[0].id, state.grants[0].id);
   approveDisclosure(state, preview.id, preview.payloadHash);
   state.revision++;
-  assert.throws(() => exportDisclosure(state, preview.id), /Records changed/);
+  assert.deepEqual(exportDisclosure(state, preview.id), preview.payload);
+  assert.equal(approveDisclosure(state, preview.id, preview.payloadHash).status, "approved");
+  delete state.disclosures[0].evidenceHash;
+  assert.throws(() => exportDisclosure(state, preview.id), /changed/i);
   assert.throws(() => approveDisclosure(state, preview.id, preview.payloadHash), /Records changed/);
 });
 
@@ -131,7 +139,7 @@ test("saving a note writes once, preserves privacy and invalidates previous disc
   assert.doesNotMatch(JSON.stringify(state.sources), /EDITED_PRIVATE_SENTINEL|Updated routine|Practiced together/);
   assert.doesNotMatch(JSON.stringify(state.audit), /EDITED_PRIVATE_SENTINEL/);
   assert.ok(state.audit.some((event) => event.action === "note.saved"));
-  assert.throws(() => exportDisclosure(state, preview.id), /Records changed/);
+  assert.throws(() => exportDisclosure(state, preview.id), /changed/i);
   const fresh = createDisclosure(state, original.id, state.grants[0].id);
   assert.equal(fresh.payload.durationMinutes, 50);
 });

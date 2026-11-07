@@ -1,4 +1,5 @@
 import type { Attendance, Claim, DemoState, Donor, Draft, MergeCandidate, Metric, QueueItem, ValidationIssue } from "./types";
+import { currentGivingCycle } from "./records-schedule";
 
 const unique = (items: string[]) => [...new Set(items)];
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
@@ -27,34 +28,43 @@ function contactMatches(a: Donor, b: Donor): string[] {
   return reasons;
 }
 
-/** Contact overlap proposes a review; names alone never merge or propose a match. */
+function rejectedGroups(state: DemoState): string[][] {
+  return state.candidates.filter((candidate) => candidate.status === "rejected")
+    .map((candidate) => unique(candidate.donorIds.map((id) => canonicalDonorId(state, id))));
+}
+
+function respectsSeparation(donorIds: string[], rejected: string[][]): boolean {
+  return rejected.every((group) => donorIds.filter((id) => group.includes(id)).length < 2);
+}
+
+/** Contact overlap proposes review. Staff separation decisions also constrain new imports. */
 export function detectMergeCandidates(state: DemoState): MergeCandidate[] {
   const active = state.donors.filter((donor) => !donor.mergedInto);
-  const visited = new Set<string>();
-  const candidates: MergeCandidate[] = [];
-  for (const start of active) {
-    if (visited.has(start.id)) continue;
-    const component: Donor[] = [];
-    const reasons: string[] = [];
-    const pending = [start];
-    while (pending.length) {
-      const current = pending.shift()!;
-      if (visited.has(current.id)) continue;
-      visited.add(current.id);
-      component.push(current);
-      for (const other of active) {
-        if (visited.has(other.id)) continue;
-        const match = contactMatches(current, other);
-        if (match.length) { pending.push(other); reasons.push(...match); }
-      }
-    }
-    if (component.length < 2) continue;
-    const donorIds = component.map((donor) => donor.id).sort();
-    const id = `merge:${donorIds.join("+")}`;
-    const prior = state.candidates.find((candidate) => candidate.id === id);
-    candidates.push({ id, donorIds, name: component[0].name, reasons: unique(reasons), status: prior?.status ?? "pending", sourceIds: unique(component.flatMap((donor) => donor.sourceIds)) });
+  const aliases = new Map(active.map((donor) => [donor.id, [] as Donor[]]));
+  for (const donor of state.donors) aliases.get(canonicalDonorId(state, donor.id))!.push(donor);
+  const rejected = rejectedGroups(state);
+  const groups = active.map((donor) => ({ donors: [donor], reasons: [] as string[] }));
+  const groupByDonor = new Map(groups.map((group) => [group.donors[0].id, group]));
+  for (let left = 0; left < active.length; left++) for (let right = left + 1; right < active.length; right++) {
+    const reasons = unique(aliases.get(active[left].id)!.flatMap((a) => aliases.get(active[right].id)!.flatMap((b) => contactMatches(a, b))));
+    if (!reasons.length) continue;
+    const first = groupByDonor.get(active[left].id)!;
+    const second = groupByDonor.get(active[right].id)!;
+    if (first === second) { first.reasons.push(...reasons); continue; }
+    if (!respectsSeparation([...first.donors, ...second.donors].map((donor) => donor.id), rejected)) continue;
+    first.donors.push(...second.donors);
+    first.reasons.push(...second.reasons, ...reasons);
+    for (const donor of second.donors) groupByDonor.set(donor.id, first);
+    groups.splice(groups.indexOf(second), 1);
   }
-  return [...state.candidates.filter((candidate) => candidate.status === "approved"), ...candidates];
+  const candidates: MergeCandidate[] = [];
+  for (const { donors, reasons } of groups) {
+    if (donors.length < 2) continue;
+    const donorIds = donors.map((donor) => donor.id).sort();
+    const id = `merge:${donorIds.join("+")}`;
+    candidates.push({ id, donorIds, name: donors[0].name, reasons: unique(reasons), status: "pending", sourceIds: unique(donors.flatMap((donor) => aliases.get(donor.id)!.flatMap((alias) => alias.sourceIds))) });
+  }
+  return [...state.candidates.filter((candidate) => candidate.status !== "pending"), ...candidates];
 }
 
 export function getMetrics(state: DemoState): Metric[] {
@@ -83,18 +93,18 @@ export function getQueue(state: DemoState): QueueItem[] {
     queue.push({ id, entityId: person.id, name: person.name, kind: "attendance", priority: "high", reason: `${consecutive.length} consecutive completed sessions missed (${consecutive.at(-1)!.date} to ${consecutive[0].date}). Cancelled and future sessions excluded.`, suggestedAction: `Check in with ${person.guardian} and ask what support would help.`, sourceIds: unique([...person.sourceIds, ...consecutive.flatMap((item) => item.sourceIds)]), status: status(id) });
   }
   for (const donor of state.donors.filter((item) => !item.mergedInto && item.cadence && item.expectedAt && item.expectedAt <= state.asOf)) {
+    const cycle = currentGivingCycle(donor, state.asOf);
+    if (!cycle) continue;
     const gifts = state.gifts.filter((gift) => canonicalDonorId(state, gift.donorId) === donor.id && gift.date <= state.asOf);
-    // A gift within the expected month fulfills an annual schedule even if before its grace date.
-    const annualDue = donor.expectedAt!.endsWith("-01-01") ? `${Number(donor.expectedAt!.slice(0, 4)) - 1}-12-01` : donor.expectedAt!;
-    const due = donor.cadence === "annual" ? annualDue : donor.expectedAt!;
-    if (gifts.some((gift) => gift.date >= due)) continue;
-    const failure = state.paymentFailures.filter((item) => canonicalDonorId(state, item.donorId) === donor.id && item.date >= due && item.date <= state.asOf).sort((a, b) => b.date.localeCompare(a.date))[0];
+    if (gifts.some((gift) => gift.date >= cycle.start && gift.date < cycle.end)) continue;
+    const failure = state.paymentFailures.filter((item) => canonicalDonorId(state, item.donorId) === donor.id && item.date >= cycle.start && item.date < cycle.end && item.date <= state.asOf).sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))[0];
     const id = `${donor.cadence}:${donor.id}`;
     const history = gifts.sort((a, b) => b.date.localeCompare(a.date));
     if (!history.length) continue;
-    const reason = donor.cadence === "annual"
-      ? `Historical lapse: expected December ${annualDue.slice(0, 4)} gift is missing; grace date ${donor.expectedAt}. Last gift ${history[0].date}. This is a retrospective catch, not a timely alert.`
-      : failure ? `Monthly gift due ${donor.expectedAt} is missing. Payment failed ${failure.date}: ${failure.reason.replaceAll("_", " ")}.` : `Monthly gift due ${donor.expectedAt} is missing. Cause unknown; no payment-failure record.`;
+    const timing = donor.cadence === "annual" && cycle.decemberGrace
+      ? `${state.asOf > cycle.due ? "Historical lapse: expected" : "Annual lapse: expected"} December ${cycle.start.slice(0, 4)} gift is missing; grace date ${cycle.due}. Last gift ${history[0].date}.${state.asOf > cycle.due ? " This is a retrospective catch, not a timely alert." : ""}`
+      : `${donor.cadence === "annual" ? "Annual" : "Monthly"} gift due ${cycle.due} is missing.`;
+    const reason = `${timing} ${failure ? `Payment failed ${failure.date}: ${failure.reason.replaceAll("_", " ")}.` : "Cause unknown; no payment-failure record."}`;
     queue.push({ id, entityId: donor.id, name: donor.name, kind: donor.cadence!, priority: failure ? "high" : "medium", reason, suggestedAction: failure ? "Offer help updating payment details through the existing secure donation page." : "Make a considerate check-in; do not assume the reason for the missed gift.", sourceIds: unique([...donor.sourceIds, ...history.flatMap((gift) => gift.sourceIds), ...(failure?.sourceIds ?? [])]), status: status(id) });
   }
   return queue;
@@ -108,6 +118,7 @@ export function decideMerge(state: DemoState, candidateId: string, decision: "ap
   const donors = candidate.donorIds.map((id) => state.donors.find((donor) => donor.id === id));
   if (donors.some((donor) => !donor || donor.mergedInto)) throw new Error("Candidate is stale; review refreshed records");
   if (decision === "approve") {
+    if (!respectsSeparation(candidate.donorIds, rejectedGroups(state))) throw new Error("This merge conflicts with a prior keep-separate decision");
     // A descriptive display name is preferred over initials; original records remain intact.
     const sorted = (donors as Donor[]).sort((a, b) => b.name.length - a.name.length || a.id.localeCompare(b.id));
     const target = sorted[0];
@@ -147,6 +158,7 @@ export function validateDraft(state: DemoState, draft: Draft): ValidationIssue[]
   if (draft.kind === "report" || draft.kind === "application") {
     for (const metric of metrics) if (!seen.has(metric.id)) issues.push({ code: "missing_claim", message: `Include the required figure: ${metric.label}.`, metricId: metric.id });
   } else {
+    if (draft.claims.length) issues.push({ code: "followup_claims", message: "Follow-ups must not include reporting figures." });
     const item = getQueue(state).find((entry) => entry.id === draft.queueItemId);
     if (!item) issues.push({ code: "queue", message: "This follow-up no longer has an active evidence-backed task." });
     else if (item.sourceIds.some((id) => !draft.sourceIds.includes(id))) issues.push({ code: "missing_evidence", message: "Include the task's complete evidence before review." });
@@ -236,6 +248,14 @@ export function importGiftCsv(state: DemoState, csv: string, sourceName: string)
     const existing = working.gifts.find((gift) => gift.id === values.gift_id);
     if (existing) {
       if (existing.donorId !== values.donor_id || existing.amountCents !== Number(values.amount_cents) || existing.date !== values.date || existing.channel !== values.channel) throw new Error(`Row ${index + 1}: gift ID conflicts with an existing transaction`);
+      const original = working.sources.find((source) => existing.sourceIds.includes(source.id) && typeof source.values.name === "string" && typeof source.values.email === "string" && typeof source.values.phone === "string");
+      const identity = working.donors.find((donor) => donor.id === existing.donorId)!;
+      // Imported transactions have a complete immutable identity snapshot. Older
+      // gift-only sources may replay only metadata already supported by that donor.
+      const metadataMatches = original
+        ? original.values.name === values.name && normalizeEmail(String(original.values.email)) === normalizeEmail(values.email) && normalizePhone(String(original.values.phone)) === normalizePhone(values.phone)
+        : identity.name === values.name && (!values.email || identity.emails.some((email) => normalizeEmail(email) === normalizeEmail(values.email))) && (!values.phone || normalizePhone(identity.phone) === normalizePhone(values.phone));
+      if (!metadataMatches) throw new Error(`Row ${index + 1}: gift ID conflicts with existing identity metadata`);
       skipped++; continue;
     }
     let donor = working.donors.find((item) => item.id === values.donor_id);

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tidepath for Sheets</title>
+  <style>
+    :root{--bg:#f8f8f3;--paper:#fff;--ink:#253d39;--muted:#637367;--teal:#1d695b;--soft:#e9f2ed;--line:#dfe6db;--amber:#875c24;--amber-bg:#fff4df;--error:#963f31;--error-bg:#fff0e8}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit;color:inherit}button,input,select,textarea,a,summary{outline-offset:3px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--teal)}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}button{width:100%;min-height:38px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-weight:650;text-align:center}button:hover:not(:disabled){background:#f0f5ee}.primary{background:var(--teal);border-color:var(--teal);color:#fff}.primary:hover:not(:disabled){background:#155345}.quiet{background:transparent;font-size:12px;min-height:32px}.row{display:flex;gap:7px;align-items:center}.row>*{min-width:0;flex:1}.stack>*+*{margin-top:10px}[hidden]{display:none!important}input,select,textarea{width:100%;min-width:0;border:1px solid #cad7c9;border-radius:7px;padding:8px;background:#fff}textarea{resize:vertical;min-height:148px;line-height:1.55}input[type=number]{font-variant-numeric:tabular-nums}label{display:block;font-size:12px;font-weight:650}label>input,label>select,label>textarea{margin-top:5px}p,h1,h2,h3{margin:0}h1{font-size:23px;letter-spacing:-1px;line-height:1.1}h2{font-size:15px;letter-spacing:-.2px}h3{font-size:13px}a{color:var(--teal)}small,.hint{font-size:11px;color:var(--muted);line-height:1.5}.hint{margin-top:5px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--teal);font-weight:750}.brand{display:flex;gap:10px;align-items:center;padding:18px 14px 13px;background:var(--paper);border-bottom:1px solid var(--line)}.mark{display:grid;place-items:center;background:var(--teal);color:#fff;border-radius:11px 11px 18px 18px;width:35px;height:39px;font-weight:800;font-size:17px}.brand small{display:block;margin-top:4px}.body{padding:12px 12px 22px}.progress{display:flex;list-style:none;padding:0;margin:0 0 12px;gap:5px;font-size:10px;color:var(--muted)}.progress li{flex:1;border-top:3px solid var(--line);padding-top:5px}.progress li.active{border-color:var(--teal);color:var(--teal);font-weight:700}.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:12px}.card-title{display:flex;align-items:center;gap:7px;margin-bottom:9px}.step{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:var(--soft);color:var(--teal);font-size:11px;font-weight:750;flex-shrink:0}.badge{display:inline-block;font-size:10px;font-weight:650;border-radius:5px;padding:3px 6px;background:var(--soft);color:var(--teal)}.badge.warn{background:var(--amber-bg);color:var(--amber)}.notice{padding:10px;border:1px solid var(--line);border-radius:8px;margin-top:10px;font-size:12px;overflow-wrap:anywhere}.notice.error{background:var(--error-bg);border-color:#ebcfc4;color:var(--error)}.notice.success{background:var(--soft);color:var(--teal)}.notice.warn{background:var(--amber-bg);border-color:#e9dbc0;color:var(--amber)}.notice ul{padding-left:16px;margin:5px 0 0}.status{min-height:0;font-size:12px;color:var(--teal);margin-top:8px;overflow-wrap:anywhere}.source{padding:9px;border-radius:7px;background:#f2f5ee;font-size:12px;overflow-wrap:anywhere}.source strong{display:block}.source small{display:block;margin-top:3px}.mapping{display:grid;gap:9px;margin-top:12px}.mapping label{display:grid;grid-template-columns:75px minmax(0,1fr);gap:6px;align-items:center}.mapping select{margin-top:0;font-size:12px;padding:7px 5px}.sample{margin-top:9px}.sample summary,details>summary{cursor:pointer;color:var(--teal);font-size:12px;font-weight:650;overflow-wrap:anywhere}.sample-scroll{overflow:auto;max-height:170px;margin-top:7px;border:1px solid var(--line);border-radius:6px}table{border-collapse:collapse;min-width:100%;font-size:11px;text-align:left}th,td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}th{background:#f2f5ee;position:sticky;top:0}.metric-pair{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0}.metric{padding:9px;background:#f3f6ef;border-radius:7px}.metric small{display:block}.metric strong{display:block;font-size:18px;letter-spacing:-.5px;overflow-wrap:anywhere}.metric .change{font-size:11px;color:var(--muted);margin-top:3px}.candidate{border-top:1px solid var(--line);padding-top:11px;margin-top:11px}.candidate:first-child{border-top:0;padding-top:0}.candidate .identities{font-size:12px;margin:6px 0;padding-left:17px}.evidence{font-size:11px;color:var(--muted);margin:6px 0 9px;padding-left:17px;overflow-wrap:anywhere}.claim{border-top:1px solid var(--line);padding-top:9px;margin-top:9px}.claim label{font-weight:600}.claim small{display:block;margin-top:4px}.editor-actions{display:grid;gap:7px;margin-top:10px}.report-title{margin-bottom:8px}.report-title .badge{margin-top:4px}.editor-meta{font-size:11px;color:var(--muted);margin:6px 0 10px}.run{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}.run ol{padding-left:17px;margin:8px 0}.run li{margin-top:6px;font-size:11px;overflow-wrap:anywhere}.run li strong{display:block}.run small{display:block;margin-top:5px}.footer{font-size:10px;line-height:1.6;color:var(--muted);margin-top:15px}.connection summary{font-size:11px}.connection form{margin-top:10px}.link-button{border:0;background:none;padding:0;min-height:20px;text-align:left;font-size:11px;color:var(--teal);font-weight:600}.link-button:hover:not(:disabled){text-decoration:underline;background:none}.empty{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header class="brand"><div class="mark" aria-hidden="true">t</div><div><h1>Tidepath</h1><small>Less admin. More human.</small></div></header>
+  <main class="body">
+    <ol class="progress" aria-label="Workflow"><li id="progress-select" class="active">1 · Select</li><li id="progress-review">2 · Review</li><li id="progress-report">3 · Report</li></ol>
+    <p class="eyebrow">In your spreadsheet</p>
+    <p class="hint">Bring donation rows into a reviewed report.</p>
+    <div id="error" class="notice error" role="alert" hidden></div>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <details id="connection" class="card connection" open>
+      <summary id="connection-title">Connect Tidepath</summary>
+      <form id="connection-form" class="stack">
+        <p class="hint">Use the protected demo connection supplied by your team.</p>
+        <label>Backend URL<input id="backend-url" type="url" placeholder="https://your-demo.example" autocomplete="off" required></label>
+        <label>Connection token<input id="backend-token" type="password" minlength="32" autocomplete="off" placeholder="Paste the connection token" required></label>
+        <p class="hint">Saved to your Google user settings, never to cells.</p>
+        <button class="primary" type="submit">Save connection</button>
+      </form>
+    </details>
+    <section class="card" aria-labelledby="selection-heading">
+      <div class="card-title"><span class="step">1</span><h2 id="selection-heading">Choose donation rows</h2></div>
+      <p class="hint">Select a header row and the donations beneath it, then read the selection.</p>
+      <button id="read-selection" class="primary" style="margin-top:10px">Read selected rows</button>
+      <button id="create-demo" class="link-button" style="margin-top:9px">Create fictional demo rows</button>
+      <div id="selection-panel" class="stack" style="margin-top:12px" hidden>
+        <div id="selection-source" class="source"></div>
+        <details class="sample"><summary>Inspect selected cells</summary><div id="selection-sample" class="sample-scroll"></div></details>
+        <div id="mapping" class="mapping"></div>
+        <label>Amount format<select id="amount-unit"><option value="cents">Integer cents (2500 = $25)</option><option value="dollars">Dollars (25.00 = $25)</option></select></label>
+        <p class="hint">Gift IDs and donor IDs must be stable. Name alone is not an identity.</p>
+        <button id="preview" class="primary">Preview import</button>
+      </div>
+      <div id="pinned-selection" class="source" style="margin-top:10px" hidden></div>
+      <div id="preview-panel" style="margin-top:12px" hidden>
+        <h3>Check before importing</h3>
+        <p id="preview-count" class="hint"></p>
+        <div id="preview-metrics" class="metric-pair"></div>
+        <p id="preview-candidates" class="hint"></p>
+        <button id="import" class="primary" style="margin-top:10px">Import reviewed rows</button>
+        <p class="hint">Original cells stay unchanged.</p>
+      </div>
+    </section>
+    <section id="review-panel" class="card" aria-labelledby="review-heading" hidden>
+      <div class="card-title"><span class="step">2</span><h2 id="review-heading">Review identities</h2></div>
+      <div id="current-metrics" class="metric-pair"></div>
+      <p id="import-result" class="hint"></p>
+      <div id="candidates"></div>
+    </section>
+    <section id="report-panel" class="card" aria-labelledby="report-heading" hidden>
+      <div class="card-title"><span class="step">3</span><h2 id="report-heading">Review your report</h2></div>
+      <p class="hint">Donation figures use imported records. Program figures come from the fictional demo dataset.</p>
+      <label style="margin-top:10px">Drafting mode<select id="mode"><option value="demo">Rehearsal · no model call</option><option id="live-option" value="live">Live · OpenAI agent</option></select></label>
+      <button id="generate" class="primary" style="margin-top:9px">Generate report</button>
+      <button id="new-request" class="link-button" style="margin-top:7px" hidden>Start a different request</button>
+      <p id="generation-hint" class="hint"></p>
+      <div id="editor" style="margin-top:14px" hidden>
+        <div class="report-title"><h3 id="draft-title"></h3><span id="draft-status" class="badge"></span></div>
+        <p id="draft-meta" class="editor-meta"></p>
+        <div id="draft-issues" class="notice warn" hidden></div>
+        <label>Narrative<textarea id="narrative" spellcheck="true"></textarea></label>
+        <p class="hint">Keep numbers in the verified figure fields below.</p>
+        <div id="claims"></div>
+        <div class="editor-actions">
+          <button id="save-draft">Save edits</button>
+          <button id="discard-edits" class="quiet">Discard unsaved edits</button>
+          <button id="approve" class="primary">Approve exact draft</button>
+          <button id="write-report" class="primary">Write approved report to new tab</button>
+        </div>
+        <p id="editor-hint" class="hint"></p>
+        <div id="write-result" class="notice success" hidden></div>
+        <details id="run-panel" class="run" hidden><summary>Recorded run &amp; evidence</summary><div id="run-content"></div></details>
+      </div>
+    </section>
+    <button id="refresh" class="quiet" style="margin-top:12px" hidden>Refresh reviewed data</button>
+    <details class="card connection"><summary>Demo tools</summary>
+      <button id="reset-demo" class="quiet" style="margin-top:9px">Reset workbook demo</button>
+      <div id="reset-confirm" class="notice warn" hidden>
+        <p>Clears this workbook’s imported records and drafts. Source cells and report tabs remain.</p>
+        <div class="row" style="margin-top:9px"><button id="reset-cancel">Cancel</button><button id="reset-confirm-button">Reset demo</button></div>
+      </div>
+    </details>
+    <p class="footer">A human approves every report. Writing creates a new tab; it does not send a message or submit anything to a funder.</p>
+  </main>
+  <script>
+  (function () {
+    'use strict';
+    var fields = [
+      { key: 'gift_id', label: 'Gift ID', aliases: ['giftid','transactionid','donationid'] },
+      { key: 'donor_id', label: 'Donor ID', aliases: ['donorid','contactid','supporterid'] },
+      { key: 'name', label: 'Name', aliases: ['name','donorname','fullname','supportername'] },
+      { key: 'email', label: 'Email', aliases: ['email','emailaddress'], optional: true },
+      { key: 'phone', label: 'Phone', aliases: ['phone','phonenumber','telephone'], optional: true },
+      { key: 'amount', label: 'Amount', aliases: ['amountcents','amount','donationamount','giftamount'] },
+      { key: 'date', label: 'Date', aliases: ['date','giftdate','donationdate','transactiondate'] },
+      { key: 'channel', label: 'Channel', aliases: ['channel','giftchannel','source','paymentchannel'] }
+    ];
+    var state = { configured: false, busy: false, selection: null, summary: null, dashboard: null, preview: null, editor: null, requestId: null, generationMode: null, selectionChanged: false, importResult: null };
+    var el = function (id) { return document.getElementById(id); };
+    function node(tag, text, className) { var item = document.createElement(tag); if (text !== undefined) item.textContent = String(text); if (className) item.className = className; return item; }
+    function clear(item) { item.replaceChildren(); }
+    function rpc(name, argument) {
+      return new Promise(function (resolve, reject) {
+        var runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(function (error) { reject(new Error(error && error.message ? error.message : 'The request could not finish. Please retry.')); });
+        if (argument === undefined) runner[name](); else runner[name](argument);
+      });
+    }
+    function message(text) { el('status').textContent = text || ''; }
+    function showError(error) {
+      var text = String(error && error.message ? error.message : error).replace(/^Error:\s*/u, '');
+      if (/while reading from storage/iu.test(text) && /\bPERMISSION_DENIED\b/u.test(text)) {
+        text = 'Google could not read the sidebar’s storage. Open this spreadsheet in a browser profile signed in only to the Google account that installed Tidepath, then reopen Tidepath. Multiple signed-in accounts can cause this Apps Script error.';
+      }
+      el('error').textContent = text; el('error').hidden = false;
+    }
+    function setBusy(value, text) { state.busy = value; document.querySelectorAll('input,select,textarea,button').forEach(function (control) { control.disabled = value; }); message(text); updateControls(); }
+    async function act(text, action) {
+      if (state.busy) return;
+      el('error').hidden = true; setBusy(true, text);
+      try { await action(); }
+      catch (error) { message(''); showError(error); }
+      finally { setBusy(false, el('status').textContent); }
+    }
+    function money(value) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value); }
+    function metricValue(metric) { return metric ? metric.unit === 'USD' ? money(metric.value) : String(metric.value) : '—'; }
+    function metricById(metrics, id) { return (metrics || []).find(function (item) { return item.id === id; }); }
+    function renderMetrics(target, metrics, previous) {
+      clear(target);
+      ['donors', 'giving'].forEach(function (id) {
+        var metric = metricById(metrics, id); if (!metric) return;
+        var card = node('div', undefined, 'metric'); card.append(node('small', id === 'donors' ? 'Quarter donors' : 'Quarter giving'), node('strong', metricValue(metric)));
+        if (previous) card.append(node('div', 'Before: ' + metricValue(metricById(previous, id)), 'change'));
+        target.append(card);
+      });
+    }
+    function applyContext(context) {
+      state.configured = Boolean(context.configured);
+      el('backend-url').value = context.backendUrl || '';
+      el('connection').open = !state.configured;
+      el('connection-title').textContent = state.configured ? 'Connection settings' : 'Connect Tidepath';
+      if (context.selection) { state.summary = context.selection; renderPinned(); }
+      if (context.selectionError) showError(new Error(context.selectionError));
+      updateControls();
+    }
+    function sourceBlock(target, summary) {
+      clear(target);
+      target.append(node('strong', summary.sheetName + ' · ' + summary.a1));
+      if (summary.rowCount) target.append(node('small', summary.rowCount + ' donation rows · header included'));
+    }
+    function renderPinned() {
+      el('pinned-selection').hidden = Boolean(state.selection) || !state.summary;
+      if (state.summary) { sourceBlock(el('pinned-selection'), state.summary); el('pinned-selection').append(node('small', 'Pinned source range. Read a new selection to change it.')); }
+    }
+    function normalizeHeader(value) { return String(value == null ? '' : value).toLowerCase().replace(/[^a-z0-9]/gu, ''); }
+    function renderSelection(result) {
+      state.selection = result.selection; state.summary = result.summary; state.preview = null; state.selectionChanged = true; state.requestId = null; state.importResult = null;
+      el('selection-panel').hidden = false;
+      sourceBlock(el('selection-source'), state.summary);
+      var headers = state.selection.values[0]; clear(el('mapping'));
+      fields.forEach(function (field) {
+        var label = node('label', field.label); var select = document.createElement('select'); select.id = 'map-' + field.key; select.setAttribute('aria-label', field.label + ' column');
+        var empty = node('option', field.optional ? 'Not present' : 'Choose column'); empty.value = ''; select.append(empty);
+        headers.forEach(function (header, index) { var option = node('option', (index + 1) + ' · ' + String(header || '(blank header)')); option.value = String(index); select.append(option); });
+        var guess = headers.findIndex(function (header) { return field.aliases.includes(normalizeHeader(header)); }); if (guess >= 0) select.value = String(guess);
+        select.addEventListener('change', invalidatePreview); label.append(select); el('mapping').append(label);
+      });
+      var amountIndex = Number(el('map-amount').value); var amountHeader = normalizeHeader(headers[amountIndex]);
+      el('amount-unit').value = amountHeader.includes('cent') ? 'cents' : 'dollars';
+      var table = document.createElement('table'); var head = document.createElement('thead'); var headerRow = document.createElement('tr'); headers.forEach(function (header) { headerRow.append(node('th', header)); }); head.append(headerRow); table.append(head);
+      var body = document.createElement('tbody'); state.selection.values.slice(1, 4).forEach(function (row) { var tr = document.createElement('tr'); row.forEach(function (cell) { tr.append(node('td', cell == null ? '' : cell)); }); body.append(tr); }); table.append(body); clear(el('selection-sample')); el('selection-sample').append(table);
+      el('preview-panel').hidden = true; el('write-result').hidden = true;
+      renderPinned(); renderDashboard(); updateControls();
+    }
+    function invalidatePreview() { state.preview = null; el('preview-panel').hidden = true; message('Mapping changed. Preview again before importing.'); updateControls(); }
+    function mapping() {
+      var result = {}; var used = new Set();
+      fields.forEach(function (field) {
+        var value = el('map-' + field.key).value;
+        if (value === '' && !field.optional) throw new Error('Choose a column for ' + field.label + '.');
+        result[field.key] = value === '' ? null : Number(value);
+        if (value !== '') { if (used.has(value)) throw new Error('Use a different column for each field.'); used.add(value); }
+      });
+      return result;
+    }
+    function applyResult(result, options) {
+      options = options || {};
+      if (result.dashboard) state.dashboard = result.dashboard;
+      if (result.importResult) state.importResult = result.importResult;
+      if (options.imported) { state.selectionChanged = false; state.preview = null; el('preview-panel').hidden = true; }
+      var drafts = state.dashboard ? state.dashboard.drafts || [] : [];
+      var draft = result.draft || drafts.find(function (item) { return state.editor && item.id === state.editor.id; }) || drafts[0];
+      if (draft && (!state.editor || !state.editor.dirty || options.replaceEditor)) setEditor(draft);
+      renderDashboard();
+    }
+    function renderDashboard() {
+      var dashboard = state.dashboard; var hasImport = dashboard && dashboard.selection && !state.selectionChanged;
+      el('review-panel').hidden = !hasImport; el('report-panel').hidden = !hasImport;
+      el('refresh').hidden = !state.configured;
+      el('progress-review').classList.toggle('active', Boolean(hasImport));
+      el('progress-report').classList.toggle('active', Boolean(hasImport && state.editor));
+      if (!dashboard) { updateControls(); return; }
+      el('live-option').disabled = !dashboard.liveAvailable;
+      if (!dashboard.liveAvailable && el('mode').value === 'live') el('mode').value = 'demo';
+      renderMetrics(el('current-metrics'), dashboard.metrics);
+      el('import-result').textContent = state.importResult ? state.importResult.inserted + ' new rows imported; ' + state.importResult.skipped + ' exact repeats skipped.' : dashboard.giftCount + ' gift records in this workbook’s workspace.';
+      clear(el('candidates'));
+      var pending = (dashboard.candidates || []).filter(function (candidate) { return candidate.status === 'pending'; });
+      if (!pending.length) el('candidates').append(node('p', 'No identity decisions waiting. Gift history and amounts are preserved.', 'empty'));
+      pending.forEach(function (candidate) {
+        var card = node('article', undefined, 'candidate'); card.append(node('h3', candidate.name));
+        var identities = node('ul', undefined, 'identities'); candidate.donorIds.forEach(function (id) { var donor = dashboard.donors.find(function (item) { return item.id === id; }); identities.append(node('li', (donor ? donor.name : id) + ' · ' + id)); }); card.append(identities);
+        var evidence = node('ul', undefined, 'evidence'); candidate.reasons.forEach(function (reason) { evidence.append(node('li', reason)); }); card.append(evidence);
+        var actions = node('div', undefined, 'row'); var approve = node('button', 'Same donor', 'primary'); var reject = node('button', 'Keep separate');
+        approve.addEventListener('click', function () { merge(candidate.id, 'approve'); }); reject.addEventListener('click', function () { merge(candidate.id, 'reject'); }); actions.append(approve, reject); card.append(actions); el('candidates').append(card);
+      });
+      renderEditor(); updateControls();
+    }
+    function setEditor(draft) {
+      state.editor = { id: draft.id, revision: draft.revision, narrative: draft.narrative, claims: draft.claims.map(function (claim) { return { metricId: claim.metricId, value: String(claim.value) }; }), dirty: false };
+      el('write-result').hidden = true;
+    }
+    function currentDraft() { return state.dashboard && state.editor ? (state.dashboard.drafts || []).find(function (draft) { return draft.id === state.editor.id; }) : null; }
+    function renderEditor() {
+      var draft = currentDraft(); el('editor').hidden = !draft; if (!draft) return;
+      el('draft-title').textContent = draft.title;
+      el('draft-status').textContent = state.editor.dirty ? 'Unsaved edits' : draft.status === 'approved' ? 'Approved' : 'Needs review';
+      el('draft-status').className = 'badge' + (state.editor.dirty || draft.status !== 'approved' ? ' warn' : '');
+      el('draft-meta').textContent = 'Draft revision ' + state.editor.revision + ' · ' + (draft.mode === 'live' ? 'Live OpenAI draft' : 'Rehearsal template');
+      el('narrative').value = state.editor.narrative;
+      clear(el('draft-issues'));
+      var issues = draft.issues || []; el('draft-issues').hidden = !issues.length;
+      if (issues.length) { el('draft-issues').append(node('strong', 'Approval checks')); var list = document.createElement('ul'); issues.forEach(function (issue) { list.append(node('li', issue.message)); }); el('draft-issues').append(list); }
+      clear(el('claims'));
+      state.editor.claims.forEach(function (claim, index) {
+        var metric = metricById(state.dashboard.metrics, claim.metricId); var group = node('div', undefined, 'claim'); var label = node('label', metric ? metric.label : claim.metricId);
+        var input = document.createElement('input'); input.type = 'number'; input.step = 'any'; input.value = claim.value; input.setAttribute('aria-label', metric ? metric.label : claim.metricId);
+        input.addEventListener('input', function () { state.editor.claims[index].value = input.value; markDirty(); }); label.append(input); group.append(label, node('small', 'Recorded: ' + metricValue(metric) + (metric && metric.unit !== 'USD' ? ' ' + metric.unit : ''))); el('claims').append(group);
+      });
+      renderRun(draft); updateControls();
+    }
+    function markDirty() { if (!state.editor) return; state.editor.dirty = true; state.requestId = null; el('write-result').hidden = true; el('draft-status').textContent = 'Unsaved edits'; el('draft-status').className = 'badge warn'; updateControls(); }
+    function renderRun(draft) {
+      var run = (state.dashboard.runs || []).find(function (item) { return item.id === draft.runId; }); el('run-panel').hidden = !run; clear(el('run-content')); if (!run) return;
+      el('run-content').append(node('small', run.model + ' · ' + (run.mode === 'live' ? 'Live execution' : 'No model request')));
+      var usage = run.inputTokens + ' input / ' + run.outputTokens + ' output tokens';
+      el('run-content').append(node('small', run.usageKnown === false ? 'Partial or unknown usage: ' + usage : 'Recorded usage: ' + usage));
+      var events = document.createElement('ol'); (run.events || []).forEach(function (event) { var item = document.createElement('li'); item.append(node('strong', event.action.replaceAll('_', ' ')), node('span', event.detail)); events.append(item); }); el('run-content').append(events);
+      el('run-content').append(node('small', draft.sourceIds.length + ' source references. This is the saved execution, not another model call.'));
+    }
+    function updateControls() {
+      var busy = state.busy; var draft = currentDraft(); var dirty = Boolean(state.editor && state.editor.dirty); var hasImport = Boolean(state.dashboard && state.dashboard.selection && !state.selectionChanged);
+      el('read-selection').disabled = busy;
+      el('create-demo').disabled = busy;
+      el('preview').disabled = busy || !state.configured || !state.selection;
+      el('import').disabled = busy || !state.preview;
+      el('generate').disabled = busy || !hasImport || dirty;
+      el('new-request').hidden = !state.requestId;
+      el('new-request').disabled = busy;
+      el('mode').disabled = busy || dirty || Boolean(state.requestId);
+      if (state.dashboard) el('live-option').disabled = !state.dashboard.liveAvailable;
+      el('save-draft').disabled = busy || !draft || !dirty;
+      el('discard-edits').disabled = busy || !draft || !dirty;
+      el('approve').disabled = busy || !draft || dirty || draft.status === 'approved';
+      el('write-report').disabled = busy || !draft || dirty || draft.status !== 'approved' || Boolean((draft.issues || []).length);
+      el('refresh').disabled = busy;
+      el('reset-demo').disabled = busy || !state.configured;
+      el('reset-confirm-button').disabled = busy || !state.configured;
+      el('reset-cancel').disabled = busy;
+      el('editor-hint').textContent = dirty ? 'Save edits before approval. Your text stays here if a request fails.' : draft && draft.status === 'approved' ? 'Approval applies to this exact content and its source evidence.' : 'Check the narrative and every figure before approving.';
+      el('generation-hint').textContent = dirty ? 'Save or discard edits before generating another report.' : state.requestId ? 'A request may still be running. Retry checks the same saved request.' : el('mode').value === 'live' ? 'Reads evidence, then drafts. Up to one repair within a shared time limit.' : 'Uses a deterministic rehearsal template. No model request is made.';
+      el('generate').textContent = state.requestId ? 'Retry saved request' : 'Generate report';
+    }
+    async function command(input, options) {
+      var result = await rpc('tidepathCommand', input);
+      if (result && result.error) throw new Error(result.error + ((result.issues || []).length ? ' ' + result.issues.map(function (issue) { return issue.message; }).join(' ') : ''));
+      applyResult(result, options); return result;
+    }
+    function merge(id, decision) { return act('Saving the identity decision…', async function () { await command({ action: 'merge', candidateId: id, decision: decision }); message(decision === 'approve' ? 'Identities reconciled. Original gifts and money are preserved.' : 'These identities will stay separate.'); }); }
+    function requestId() { return 'sheets-' + (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2)); }
+    el('connection-form').addEventListener('submit', function (event) { event.preventDefault(); act('Connecting…', async function () { var context = await rpc('tidepathConfigure', { url: el('backend-url').value.trim(), token: el('backend-token').value.trim() }); el('backend-token').value = ''; applyContext(context); await command({ action: 'status' }); message('Connection ready.'); }); });
+    el('read-selection').addEventListener('click', function () { act('Reading the selected cells…', async function () { renderSelection(await rpc('tidepathReadSelection')); message('Check the column mapping, then preview.'); }); });
+    el('create-demo').addEventListener('click', function () { act('Creating fictional donation rows…', async function () { renderSelection(await rpc('createTidepathDemo')); message('A new demo tab is ready. Check its mapping, then preview.'); }); });
+    el('amount-unit').addEventListener('change', invalidatePreview);
+    el('preview').addEventListener('click', function () { act('Checking rows without importing…', async function () {
+      var result = await command({ action: 'preview', mapping: mapping(), amountUnit: el('amount-unit').value }); state.preview = result.preview;
+      el('preview-panel').hidden = false; el('preview-count').textContent = state.preview.inserted + ' new rows · ' + state.preview.skipped + ' exact repeats · ' + state.preview.rowCount + ' rows reviewed';
+      renderMetrics(el('preview-metrics'), state.preview.metrics, state.dashboard.metrics);
+      var count = state.preview.candidates.filter(function (candidate) { return candidate.status === 'pending'; }).length; el('preview-candidates').textContent = count ? count + ' possible identity match' + (count === 1 ? '' : 'es') + ' to review after import.' : 'No identity matches waiting after this import.';
+      message('Preview ready. Nothing has been imported yet.');
+    }); });
+    el('import').addEventListener('click', function () { act('Importing the reviewed selection…', async function () { await command({ action: 'import', mapping: mapping(), amountUnit: el('amount-unit').value, previewHash: state.preview.previewHash }, { imported: true }); message('Rows imported. Review any identity matches next.'); }); });
+    el('mode').addEventListener('change', updateControls);
+    el('new-request').addEventListener('click', function () { state.requestId = null; state.generationMode = null; message('Choose the drafting mode. Any active request must finish before another can start.'); updateControls(); });
+    el('generate').addEventListener('click', function () { act('Reading evidence and drafting the report…', async function () {
+      if (!state.requestId) { state.requestId = requestId(); state.generationMode = el('mode').value; }
+      try { await command({ action: 'generate', mode: state.generationMode, requestId: state.requestId }, { replaceEditor: true }); state.requestId = null; message('Draft ready. Review its narrative and verified figures.'); }
+      catch (error) { if (/new request key|shared time limit|The (?:model|report) could not finish|model access|quota|API key|twelve live-attempt limit|generation reservation expired|Records changed during drafting/iu.test(error.message)) state.requestId = null; throw error; }
+    }); });
+    el('narrative').addEventListener('input', function () { if (state.editor) { state.editor.narrative = el('narrative').value; markDirty(); } });
+    el('save-draft').addEventListener('click', function () { act('Saving edits for review…', async function () {
+      var claims = state.editor.claims.map(function (claim) { var value = Number(claim.value); if (!claim.value.trim() || !Number.isFinite(value)) throw new Error('Enter a valid number for every figure.'); return { metricId: claim.metricId, value: value }; });
+      await command({ action: 'edit', draftId: state.editor.id, revision: state.editor.revision, narrative: state.editor.narrative, claims: claims }, { replaceEditor: true }); message('Edits saved. Review the checks before approval.');
+    }); });
+    el('discard-edits').addEventListener('click', function () { var draft = currentDraft(); if (draft) { setEditor(draft); renderEditor(); message('Unsaved edits discarded.'); } });
+    el('approve').addEventListener('click', function () { act('Checking exact content and evidence…', async function () { await command({ action: 'approve', draftId: state.editor.id, revision: state.editor.revision }, { replaceEditor: true }); message('Exact draft approved. It can now be written to a new tab.'); }); });
+    el('write-report').addEventListener('click', function () { act('Rechecking the source and writing a new report tab…', async function () {
+      var result = await rpc('tidepathWriteReport', { draftId: state.editor.id, revision: state.editor.revision }); clear(el('write-result')); el('write-result').hidden = false;
+      el('write-result').append(node('strong', result.replayed ? 'Already written: ' + result.sheetName : 'Created: ' + result.sheetName));
+      try { var url = new URL(result.url); if (url.protocol === 'https:' && url.hostname === 'docs.google.com' && url.pathname.startsWith('/spreadsheets/')) { var link = node('a', 'Open approved report'); link.href = url.href; link.target = '_blank'; link.rel = 'noopener noreferrer'; el('write-result').append(document.createElement('br'), link); } } catch (_) { /* A receipt remains useful without a link. */ }
+      message(result.replayed ? 'The existing report tab was reused. No duplicate was created.' : 'Approved report written. Original cells are unchanged.');
+    }); });
+    el('refresh').addEventListener('click', function () { act('Refreshing reviewed records…', async function () { await command({ action: 'status' }); message(state.editor && state.editor.dirty ? 'Records refreshed. Your unsaved text is preserved.' : 'Reviewed records refreshed.'); }); });
+    el('reset-demo').addEventListener('click', function () { el('reset-confirm').hidden = false; el('reset-demo').hidden = true; });
+    el('reset-cancel').addEventListener('click', function () { el('reset-confirm').hidden = true; el('reset-demo').hidden = false; });
+    el('reset-confirm-button').addEventListener('click', function () { act('Resetting this workbook’s demo records…', async function () {
+      var result = await rpc('tidepathCommand', { action: 'reset' });
+      if (result && result.error) throw new Error(result.error);
+      state.selection = null; state.summary = null; state.preview = null; state.editor = null; state.requestId = null; state.generationMode = null; state.selectionChanged = false; state.importResult = null;
+      el('selection-panel').hidden = true; el('pinned-selection').hidden = true; el('preview-panel').hidden = true; el('write-result').hidden = true; el('editor').hidden = true;
+      el('reset-confirm').hidden = true; el('reset-demo').hidden = false; clear(el('mapping')); clear(el('selection-sample'));
+      applyResult(result); message('Workbook demo reset. Source cells and report tabs remain. Read a selection to rehearse again.');
+    }); });
+    act('Opening Tidepath…', async function () { applyContext(await rpc('tidepathContext')); if (state.configured) await command({ action: 'status' }); message(state.configured ? 'Ready. Select donation rows or continue the reviewed workflow.' : 'Connect the demo backend to get started.'); });
+  }());
+  </script>
+</body>
+</html>
