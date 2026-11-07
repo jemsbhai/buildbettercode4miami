@@ -10,7 +10,8 @@
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/test.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "sheets:bridge": "node --env-file-if-exists=.env.local --import tsx scripts/sheets-bridge.ts"
   },
   "dependencies": {
     "next": "16.4.5",
@@ -18,7 +19,8 @@
     "react-dom": "19.3.1",
     "@openai/agents": "0.21.0",
     "zod": "4.6.7",
-    "lucide-react": "0.468.0"
+    "lucide-react": "0.468.0",
+    "openai": "7.53.0"
   },
   "devDependencies": {
     "typescript": "5.9.3",
