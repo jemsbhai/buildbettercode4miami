@@ -5,8 +5,8 @@ The public backend is deployed at [tidepath-sheets.vercel.app](https://tidepath-
 ## Deployed implementation
 
 - Repository: `jemsbhai/buildbettercode4miami`, branch `codex/tidepath-public-addon`.
-- Current production commit: `89edd686c36040d5dc01c17b8e5318165499188e`.
-- Current production deployment: `dpl_3hFA3Q1Qu1RkAKse5ktkJ3YLRPik`, state `READY`. Fourteen hosted checks passed against this release. It updates UI/publisher pages; the native backend behavior verified on `3a87c5d701d1fab666613551652c3266b4e07c54` is unchanged.
+- Native acceptance release: `89edd686c36040d5dc01c17b8e5318165499188e`, deployment `dpl_3hFA3Q1Qu1RkAKse5ktkJ3YLRPik`, state `READY`. Fourteen hosted checks passed. It updates UI/publisher pages; the native backend behavior verified on `3a87c5d701d1fab666613551652c3266b4e07c54` is unchanged.
+- Final disclosure release: `940e679992e11b69cc728ac2376c2159ffb537d7`, deployment `dpl_51f2Q1LmC2pxCR5CtaWM62fFJukj`, observed `READY`; all fourteen hosted checks passed again. This changes privacy/account wording to distinguish 30-day counter expiry from deletion at the next successful cleanup, plus release documentation. Native runtime behavior and Apps Script version 1 are unchanged. Subsequent documentation-only commits do not repeat native acceptance.
 - Vercel project: `tidepath-sheets`, production branch pinned to the public add-on branch; other branches are excluded by the build command.
 - Runtime: Node.js 24, hosted Next.js API, persistent Neon PostgreSQL in US East, migrations 001–003 applied.
 - Runtime database access uses a restricted login and transactional role without superuser, role-administration or RLS-bypass privilege. Alternate provider-injected connection settings also use the restricted login.
