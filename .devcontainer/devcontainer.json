@@ -16,6 +16,7 @@
   ],
   "postCreateCommand": "sudo chown node:node node_modules .next && npm ci --no-audit --no-fund",
   "forwardPorts": [3000],
+  "appPort": [3000],
   "portsAttributes": {
     "3000": { "label": "Tidepath", "onAutoForward": "notify" }
   },
