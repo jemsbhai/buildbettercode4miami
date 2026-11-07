@@ -10,7 +10,7 @@ const bindingPath = join(stage, "binding.json");
 const args = new Set(process.argv.slice(2));
 const accepted = new Set(["--prepare", "--create", "--push", "--version"]);
 if ([...args].some(arg => !accepted.has(arg))) throw new Error("Use --prepare, --create, --push or --version. No credentials are accepted on the command line.");
-const title = "Tidepath for Google Sheets";
+const title = "Tidepath";
 const publisherEmail = "jemsbhai@gmail.com";
 const names = ["Code.gs", "Sidebar.html", "Picker.html", "appsscript.json"];
 const types = { ".gs": "SERVER_JS", ".html": "HTML", ".json": "JSON" };
@@ -97,7 +97,7 @@ try {
     }
   }
   console.log(`Prepared public add-on files in ${stage}. Publisher values were not printed.`);
-  if (binding?.scriptId) console.log(`Editor: https://script.google.com/home/projects/${binding.scriptId}/edit\nNext: link standard Cloud project 397160375233, run initializeTidepathPublisher_ in the editor, and create a fresh-workbook Editor add-on test deployment.`);
+  if (binding?.scriptId) console.log(`Editor: https://script.google.com/home/projects/${binding.scriptId}/edit\nNext: verify standard Cloud project 397160375233, run tidepathPublisherSetup in the editor if setup is needed, and test a fresh-workbook Editor add-on deployment. Remove generated Publisher.gs before freezing the reviewed version.`);
   else console.log("No Apps Script project created. Use --create --push when account API access is authorized, or create the standalone project in the editor.");
 } catch (error) {
   // Avoid stack traces containing request bodies or token-bearing provider objects.

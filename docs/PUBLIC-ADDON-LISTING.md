@@ -1,12 +1,14 @@
 # Tidepath Marketplace submission materials
 
-This is prepared listing copy and a review checklist. It is not a submitted or approved listing. Publish only after OAuth configuration, hosted native verification and applicable Google reviews are complete. [The dated release record](PUBLIC-RELEASE-2026-11-07.md) distinguishes the deployed backend from these outstanding installation and review gates.
+This is prepared listing copy and a review checklist. It is not a submitted or approved listing. Publish only after OAuth configuration, hosted native verification and applicable Google reviews are complete. [The dated release record](PUBLIC-RELEASE-2026-11-07.md) distinguishes the deployed backend from these outstanding installation and review gates. [The reviewer package](PUBLIC-ADDON-REVIEW.md) contains the exact project configuration, scope justifications, test fixture, recording outline and submission evidence checklist.
 
 ## Listing fields
 
-**Application name:** Tidepath for Google Sheets
+**Application name:** Tidepath
 
-**Short description:** Reconcile donation records and create evidence-backed nonprofit reports in Google Sheets.
+Use the plain application title consistently in consent, Marketplace and the native script. Descriptive compatibility text may say **for Google Sheets™**. Google Sheets™ is a trademark of Google LLC. This follows the [Marketplace branding exception for compatibility wording](https://developers.google.com/workspace/marketplace/terms/branding); the longer consent title was rejected during setup.
+
+**Short description:** Reconcile donation records and create evidence-backed nonprofit reports in Google Sheets™.
 
 **Detailed description:**
 
@@ -22,15 +24,21 @@ Tidepath uses a hosted service to store imported records and verify reports. Opt
 
 The first release supports positive USD donations, one table per workbook workspace, up to 1,000 donation rows, 32 columns and 1 MB of selected data. A table may total up to $1 billion; source cells are limited to 2,000 characters. Stable transaction IDs, donor names, amounts and dates are required. Donor IDs, contact columns and channels are optional. Refunds, negative amounts, multiple currencies, automatic synchronization and shared team workspaces are not supported in this release.
 
+Google Sheets™ is a trademark of Google LLC.
+
 **Application integration:** Sheets Editor add-on.
 
 **Intended audience:** Nonprofit operations and fundraising staff.
 
 **Public support and privacy contact:** [jemsbhai@gmail.com](mailto:jemsbhai@gmail.com), explicitly approved by the publisher. The support, privacy and terms pages link to this address.
 
+**Developer name:** Muntaser Syed, individual developer.
+
+**Trader status:** Non-trader; the publisher has declared this a personal, noncommercial project. No trader mailing address is collected for this declaration. The developer website is `https://tidepath-sheets.vercel.app/terms`, which identifies the operator.
+
 **Installation:** Individual Google accounts where allowed by their organization; admin installation policy remains under Google Workspace controls. No domain-wide delegation is used.
 
-**Pricing field:** Confirm actual publisher pricing before submission. Do not advertise unlimited AI usage. Current service limits are ten stored workbooks per account, fifty saved report attempts per workbook, 120 actions per account per UTC hour, twelve AI attempts per account per UTC day and 100 AI attempts service-wide per UTC day. Failed attempts count; replaying a saved generation request does not spend another generation allowance. Standard reports do not use the AI allowance. See [the release runbook](PUBLIC-ADDON-RELEASE.md) and [database operations](PUBLIC-DATABASE.md) for the exact storage/retention limits and deletion behavior.
+**Pricing field:** Select **Free of charge**, with documented service limits; explicitly approved by the publisher. Do not advertise unlimited AI usage. Current service limits are ten stored workbooks per account, fifty saved report attempts per workbook, 120 actions per account per UTC hour, twelve AI attempts per account per UTC day and 100 AI attempts service-wide per UTC day. Failed attempts count; replaying a saved generation request does not spend another generation allowance. Standard reports do not use the AI allowance. See [the release runbook](PUBLIC-ADDON-RELEASE.md) and [database operations](PUBLIC-DATABASE.md) for the exact storage/retention limits and deletion behavior.
 
 | Link field | Intended canonical URL |
 | --- | --- |
@@ -41,7 +49,7 @@ The first release supports positive USD donations, one table per workbook worksp
 | Setup/help | `https://tidepath-sheets.vercel.app/support` |
 | Account management | `https://tidepath-sheets.vercel.app/account` |
 
-Verify all URLs are publicly reachable and contain the final policy text before submitting. The public support/privacy contact is approved. Publisher legal identity, merchant/trader declaration and pricing still require the applicable publisher inputs; they are not inferred from a GitHub username.
+Verify all URLs are publicly reachable and contain the final policy text before submitting. The publisher has supplied the developer identity, non-trader declaration, pricing and public support/privacy contact above. These are owner declarations, not an independent legal classification. Confirm that they match the saved Google configuration and deployed pages.
 
 ## Scope justification for review
 
@@ -65,19 +73,20 @@ Do not include personal email addresses, browser profile details, developer cred
 
 Provide Google reviewers the verified test-install details or access required by the submission form. Do not send credentials through repository files. A reviewer-owned Sheet is supported; suggested test columns are Gift ID, Name, Email, Amount, Date and Channel. Use fictional data and choose dates matching those rows.
 
-After installation, open Extensions → Tidepath for Google Sheets → Open Tidepath. Complete Google authorization, choose the currently open spreadsheet in the file picker and verify the displayed account. Select its donation table with headers; read the selection, map columns and choose dates. Preview and import. Review identity proposals, generate a standard report, edit and approve it, then write to a new tab. Optional AI requires the disclosure checkbox. Source edits must invalidate export until fresh review. Use Data & privacy to delete imported server records.
+After installation, open Extensions → Tidepath → Open Tidepath. Complete Google authorization, choose the currently open spreadsheet in the file picker and verify the displayed account. Select its donation table with headers; read the selection, map columns and choose dates. Preview and import. Review identity proposals, generate a standard report, edit and approve it, then write to a new tab. Optional AI requires the disclosure checkbox. Source edits must invalidate export until fresh review. Use Data & privacy to delete imported server records.
 
 ## Submission gates
 
 - [x] Publish the owner-approved support/privacy contact: `jemsbhai@gmail.com`.
-- [ ] Confirm name availability, publisher legal identity and pricing.
+- [x] Receive publisher identity, non-trader declaration and free pricing with service limits.
+- [ ] Confirm name availability and copy the approved publisher fields into the Google listing.
 - [ ] Verify final publisher-approved privacy, terms and support content on the authorized domain. Hosted page availability is already recorded separately in the release evidence.
 - [ ] Observe a scheduled hosted cleanup invocation and confirm provider backup retention for the privacy disclosure.
 - [ ] Record the exact tested backend commit, Apps Script version, Cloud project and trusted OAuth client IDs.
 - [ ] Complete the fresh-workbook acceptance record in `PUBLIC-ADDON-RELEASE.md`.
 - [ ] Finish applicable Google OAuth verification and update consent publishing status appropriately.
 - [ ] Add real native screenshots and reviewer instructions.
-- [ ] Configure Marketplace SDK visibility as public and installation options deliberately; Google documents that public/private visibility cannot be changed after publication.
+- [ ] Configure Marketplace SDK visibility as public and installation options deliberately; Google documents that public/private visibility cannot be changed after saving App Configuration. Use the Sheets Editor add-on integration with the tested script ID and integer version, as detailed in the reviewer package.
 - [ ] Submit for Marketplace review and record the submission ID/status.
 - [ ] After approval, verify the public install link with a fresh account and record organizational restrictions observed.
 
