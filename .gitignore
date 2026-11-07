@@ -1,5 +1,6 @@
 node_modules/
 .next/
+.next-public/
 .data/
 .env*
 !.env.example
@@ -8,3 +9,5 @@ node_modules/
 out/
 .clasp.json
 .clasprc.json
+
+.vercel/

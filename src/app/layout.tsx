@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Tidepath | Every record, a way forward",
-  description: "Turn scattered nonprofit records into thoughtful follow-ups and reports you can stand behind. A synthetic hackathon demonstration.",
+  description: "Reconcile donation records and prepare evidence-backed reports inside Google Sheets. Your review, your records, your approval.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

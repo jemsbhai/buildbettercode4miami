@@ -22,8 +22,8 @@ function atomicReplace(temp: string, path: string) {
 // Synchronous read-modify-rename is serialized within ONE Node process. Not a multi-host database.
 export function readState(): DemoState {
   const path = filename();
-  if (!existsSync(path)) saveState(createSeed());
-  return JSON.parse(readFileSync(path, "utf8")) as DemoState;
+  if (!existsSync(/* turbopackIgnore: true */ path)) saveState(createSeed());
+  return JSON.parse(readFileSync(/* turbopackIgnore: true */ path, "utf8")) as DemoState;
 }
 
 function saveState(state: DemoState) {

@@ -6,7 +6,7 @@ import { digest, draftIsCurrent } from "./evidence";
 import { createSeed } from "./seed";
 import { AppError, approveDraft, checkDraft, editDraft, exportDraft, findDraft, presentDraft } from "./service";
 import type { AgentRun, DemoState } from "./types";
-import { SHEETS_FIELDS, type SheetsAmountUnit, type SheetsBinding, type SheetsCommand, type SheetsDashboard, type SheetsGiftRow, type SheetsMapping, type SheetsPreview, type SheetsResult, type SheetsSelection, type SheetsWorkspace } from "./sheets-types";
+import { SHEETS_FIELDS, type SheetsAmountUnit, type SheetsBinding, type SheetsCommand, type SheetsDashboard, type SheetsGiftRow, type SheetsMapping, type SheetsPeriod, type SheetsPreview, type SheetsResult, type SheetsSelection, type SheetsWorkspace } from "./sheets-types";
 
 const cellSchema = z.union([z.string().max(2000), z.number().finite(), z.boolean(), z.null()]);
 const selectionSchema = z.object({
@@ -17,9 +17,11 @@ const selectionSchema = z.object({
   formulas: z.array(z.array(z.string().max(2000)).min(1).max(32)).min(2).max(1001),
 }).strict();
 const column = z.number().int().nonnegative().max(31);
-const mappingSchema = z.object({ gift_id: column, donor_id: column, name: column, email: column.nullable(), phone: column.nullable(), amount: column, date: column, channel: column }).strict();
+const mappingSchema = z.object({ gift_id: column, donor_id: column.nullable(), name: column, email: column.nullable(), phone: column.nullable(), amount: column, date: column, channel: column.nullable() }).strict();
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/u).refine(value => Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value, "Use a real ISO date (YYYY-MM-DD).");
+const periodSchema = z.object({ start: isoDate, end: isoDate, label: z.string().trim().min(1).max(120).optional() }).strict().refine(value => value.start <= value.end, "The reporting start must be on or before its end.");
 const common = { selection: selectionSchema };
-const importFields = { ...common, mapping: mappingSchema, amountUnit: z.enum(["cents", "dollars"]) };
+const importFields = { ...common, mapping: mappingSchema, amountUnit: z.enum(["cents", "dollars"]), period: periodSchema.optional(), currency: z.literal("USD").optional() };
 const draftFields = { ...common, draftId: z.string().min(1).max(200), revision: z.number().int().positive() };
 const commandSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("status") }).strict(),
@@ -33,11 +35,21 @@ const commandSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("export"), ...draftFields }).strict(),
 ]);
 
-export type SheetsDependencies = { checkpoint?: (workspace: SheetsWorkspace) => void | Promise<void>; prepareDraft?: typeof prepareDraft };
+export type SheetsDependencies = { checkpoint?: (workspace: SheetsWorkspace) => void | Promise<void>; prepareDraft?: typeof prepareDraft;
+  /** Runs only for a new, valid attempt, before its durable reservation or model work. */
+  beforeGeneration?: (workspace: SheetsWorkspace, command: Extract<SheetsCommand, { action: "generate" }>) => void | Promise<void> };
 
 /** A workbook has its own donor records; fictional program activity is explicit demo context. */
-export function createSheetsWorkspace(workbookId: string): SheetsWorkspace {
+export function createSheetsWorkspace(workbookId: string, options?: { mode: "public"; period?: SheetsPeriod }): SheetsWorkspace {
   if (!/^[A-Za-z0-9_-]{1,200}$/u.test(workbookId)) throw new AppError("Invalid workbook identifier.");
+  if (options?.mode === "public") {
+    const today = new Date().toISOString().slice(0, 10);
+    const period = publicPeriod(options.period ?? { start: `${today.slice(0, 4)}-01-01`, end: today });
+    const state: DemoState = { schemaVersion: 1, reportScope: "donations", revision: 1, asOf: period.end, period,
+      sources: [], donors: [], gifts: [], participants: [], attendance: [], volunteerHours: [], paymentFailures: [], candidates: [],
+      drafts: [], runs: [], audit: [], grants: [], expenses: [], notes: [], disclosures: [], outbox: [], generationJobs: [] };
+    return { version: 1, mode: "public", workbookId, state, generationRequests: [] };
+  }
   const state = createSeed();
   state.donors = []; state.gifts = []; state.paymentFailures = []; state.candidates = [];
   state.grants = []; state.expenses = []; state.notes = []; state.disclosures = [];
@@ -47,6 +59,14 @@ export function createSheetsWorkspace(workbookId: string): SheetsWorkspace {
   return { version: 1, workbookId, state, generationRequests: [] };
 }
 
+export const createPublicSheetsWorkspace = (workbookId: string, period?: SheetsPeriod) => createSheetsWorkspace(workbookId, { mode: "public", period });
+
+function publicPeriod(input: SheetsPeriod): DemoState["period"] {
+  const parsed = periodSchema.safeParse(input);
+  if (!parsed.success) throw new AppError("Choose a valid reporting date range (YYYY-MM-DD).");
+  return { start: parsed.data.start, end: parsed.data.end, label: parsed.data.label ?? `${parsed.data.start} to ${parsed.data.end}` };
+}
+
 /** Never return DemoState: it is not the spreadsheet client's data contract. */
 export function sheetsDashboard(workspace: SheetsWorkspace): SheetsDashboard {
   const { state } = workspace;
@@ -54,7 +74,8 @@ export function sheetsDashboard(workspace: SheetsWorkspace): SheetsDashboard {
     revision: state.revision, asOf: state.asOf, period: state.period, metrics: getMetrics(state), candidates: state.candidates,
     donors: state.donors.map(({ id, name, emails, phone, mergedInto }) => ({ id, name, emails, phone, mergedInto })),
     giftCount: state.gifts.length, drafts: state.drafts.map(draft => ({ ...presentDraft(state, draft), issues: checkDraft(state, draft) })),
-    runs: state.runs, selection: workspace.selection, liveAvailable: Boolean(process.env.OPENAI_API_KEY), programData: "fictional_demo" as const,
+    runs: state.runs, selection: workspace.selection, liveAvailable: Boolean(process.env.OPENAI_API_KEY), programData: workspace.mode === "public" ? "not_provided" as const : "fictional_demo" as const,
+    ...(workspace.mode === "public" ? { currency: "USD" as const, importMode: "replace_snapshot" as const } : {}),
   });
 }
 
@@ -96,21 +117,30 @@ function moneyInCents(value: SheetsSelection["values"][number][number], unit: Sh
   return Number(cents);
 }
 
-function mappedRows(selection: SheetsSelection, mapping: SheetsMapping, amountUnit: SheetsAmountUnit) {
+function mappedRows(selection: SheetsSelection, mapping: SheetsMapping, amountUnit: SheetsAmountUnit, isPublic = false) {
   const width = selection.values[0].length;
   const columns = SHEETS_FIELDS.map(field => mapping[field]).filter((value): value is number => value !== null);
   if (new Set(columns).size !== columns.length || columns.some(value => value >= width)) throw new AppError("Map each field to a distinct column within the selected range.");
   const rows: { value: SheetsGiftRow; row: number }[] = [];
+  const giftIds = new Set<string>();
   for (let index = 1; index < selection.values.length; index++) {
     const cells = selection.values[index];
     if (cells.every(value => value === null || value === "")) continue;
     const rowNumber = selection.startRow + index;
     const field = (name: typeof SHEETS_FIELDS[number]) => mapping[name] === null ? "" : String(cells[mapping[name]!] ?? "").trim();
-    const giftId = field("gift_id"); const donorId = field("donor_id");
-    if (!giftId || !donorId) throw new AppError(`Row ${rowNumber}: stable gift and donor IDs are required. Names are not identity keys.`);
+    const giftId = field("gift_id");
+    if (!giftId) throw new AppError(`Row ${rowNumber}: a stable gift ID is required. Keep it unchanged when correcting this gift.`);
+    if (isPublic && giftIds.has(giftId)) throw new AppError(`Row ${rowNumber}: gift ID "${giftId}" occurs more than once. Each selected transaction needs its own stable ID.`);
+    giftIds.add(giftId);
+    const suppliedDonorId = field("donor_id");
+    if (!isPublic && !suppliedDonorId) throw new AppError(`Row ${rowNumber}: stable gift and donor IDs are required. Names are not identity keys.`);
+    // Separate namespaces make explicit IDs unable to collide with fallback IDs.
+    // A fallback belongs to one gift, never a name, email or phone auto-merge.
+    const donorId = isPublic ? `${suppliedDonorId ? "provided" : "gift"}_${digest({ workbook: selection.workbookId, id: suppliedDonorId || giftId }).slice(0, 40)}` : suppliedDonorId;
+    const channel = field("channel").toLowerCase() || (isPublic ? "unspecified" : "");
     rows.push({ row: rowNumber, value: {
       gift_id: giftId, donor_id: donorId, name: field("name"), email: field("email"), phone: field("phone"),
-      amount_cents: moneyInCents(cells[mapping.amount!], amountUnit, rowNumber), date: field("date"), channel: field("channel").toLowerCase(),
+      amount_cents: moneyInCents(cells[mapping.amount!], amountUnit, rowNumber), date: field("date"), channel,
     } });
   }
   if (!rows.length) throw new AppError("The selected range has no donation rows.");
@@ -124,13 +154,15 @@ function csvFor(rows: { value: SheetsGiftRow }[]) {
 }
 
 function applyImport(state: DemoState, selection: SheetsSelection, mapping: SheetsMapping, amountUnit: SheetsAmountUnit) {
-  const rows = mappedRows(selection, mapping, amountUnit);
+  const rows = mappedRows(selection, mapping, amountUnit, state.reportScope === "donations");
   const selectedIds = new Set(rows.map(item => item.value.gift_id));
   if (state.gifts.some(gift => !selectedIds.has(gift.id))) throw new AppError("Include every previously imported gift in this workbook's source table, or reset the workbook demo before importing a different table.", 409);
   const existing = new Set(state.gifts.map(gift => gift.id));
   let result: ReturnType<typeof importGiftCsv>;
   try { result = importGiftCsv(state, csvFor(rows), `Google Sheets: ${selection.sheetName}`); }
   catch (error) { throw new AppError(error instanceof Error ? error.message : "The donation table could not be imported."); }
+  // Keep dollar-number rendering comfortably below the cent precision boundary.
+  if (state.reportScope === "donations" && state.gifts.reduce((sum, gift) => sum + gift.amountCents, 0) > 100_000_000_000) throw new AppError("The selected table exceeds the supported USD 1 billion total. Use a smaller reporting table.");
   const snapshotHash = digest(selection);
   let provenanceChanged = false;
   const visited = new Set<string>();
@@ -152,8 +184,58 @@ function applyImport(state: DemoState, selection: SheetsSelection, mapping: Shee
   return { ...result, rows };
 }
 
-function previewImport(workspace: SheetsWorkspace, selection: SheetsSelection, mapping: SheetsMapping, amountUnit: SheetsAmountUnit): SheetsPreview {
+function publicImport(workspace: SheetsWorkspace, selection: SheetsSelection, mapping: SheetsMapping, amountUnit: SheetsAmountUnit, period: SheetsPeriod) {
+  const normalizedPeriod = publicPeriod(period);
+  const sameSnapshot = workspace.selection?.snapshotHash === digest(selection) && digest(workspace.selection.mapping) === digest(mapping)
+    && workspace.selection.amountUnit === amountUnit && digest(workspace.state.period) === digest(normalizedPeriod);
+  const previousRows = new Map(workspace.state.gifts.map(gift => {
+    const source = workspace.state.sources.find(source => source.id === `src-import-${gift.id}`)!;
+    return [gift.id, Object.fromEntries(["gift_id", "donor_id", "name", "email", "phone", "amount_cents", "date", "channel"].map(key => [key, source.values[key]]))];
+  }));
+  const state = structuredClone(workspace.state);
+  if (!sameSnapshot) {
+    state.donors = []; state.gifts = []; state.sources = []; state.candidates = [];
+    state.period = normalizedPeriod; state.asOf = normalizedPeriod.end;
+  }
+  const result = applyImport(state, selection, mapping, amountUnit);
+  const incoming = new Map(result.rows.map(row => [row.value.gift_id, row.value]));
+  let inserted = 0, updated = 0, skipped = 0;
+  for (const [id, row] of incoming) {
+    if (!previousRows.has(id)) inserted++;
+    else if (digest(previousRows.get(id)) === digest(row)) skipped++;
+    else updated++;
+  }
+  const removed = [...previousRows.keys()].filter(id => !incoming.has(id)).length;
+  if (!sameSnapshot) {
+    state.revision = workspace.state.revision + 1;
+    state.reportSourceSnapshot = digest({ selection, mapping, amountUnit, period: normalizedPeriod, revision: state.revision });
+    for (const draft of state.drafts) {
+      draft.status = "pending"; delete draft.approvedAt; delete draft.approvedDigest;
+    }
+    state.audit.push({ id: randomUUID(), at: new Date().toISOString(), action: "sheets.snapshot_replaced",
+      detail: `${inserted} added, ${updated} corrected, ${removed} removed, ${skipped} unchanged gifts. The reviewed table replaces the earlier snapshot; merge decisions and report approvals require fresh review.`, sourceIds: state.sources.map(source => source.id) });
+  }
+  return { state, rows: result.rows, inserted, skipped, updated, removed, replacesSnapshot: Boolean(workspace.selection) && !sameSnapshot };
+}
+
+function publicPreviewHash(workspace: SheetsWorkspace, selection: SheetsSelection, mapping: SheetsMapping, amountUnit: SheetsAmountUnit, period: SheetsPeriod) {
+  return digest({ snapshotHash: digest(selection), mapping, amountUnit, period: publicPeriod(period), currency: "USD", revision: workspace.state.revision });
+}
+
+function previewImport(workspace: SheetsWorkspace, selection: SheetsSelection, mapping: SheetsMapping, amountUnit: SheetsAmountUnit, period?: SheetsPeriod): SheetsPreview {
   validateSelection(workspace, selection);
+  if (workspace.mode === "public") {
+    if (!period) throw new AppError("Choose the reporting start and end dates before previewing.");
+    const result = publicImport(workspace, selection, mapping, amountUnit, period);
+    const warnings = ["USD positive gifts only. Refunds, chargebacks and currency conversion are not supported."];
+    if (mapping.donor_id === null) warnings.push("No donor ID is mapped. Each gift starts as a separate donor identity; review contact matches before reporting unique donors.");
+    if (result.replacesSnapshot) warnings.push("This table replaces the previous snapshot, including removed gifts. All merge decisions and report approvals require fresh review.");
+    const outside = result.rows.filter(row => row.value.date < period.start || row.value.date > period.end).length;
+    if (outside) warnings.push(`${outside} gifts fall outside the reporting period and are excluded from its totals.`);
+    return { previewHash: publicPreviewHash(workspace, selection, mapping, amountUnit, period), snapshotHash: digest(selection),
+      inserted: result.inserted, skipped: result.skipped, updated: result.updated, removed: result.removed, replacesSnapshot: result.replacesSnapshot, warnings,
+      rowCount: result.rows.length, rows: result.rows.map(row => row.value), metrics: getMetrics(result.state), candidates: structuredClone(result.state.candidates) };
+  }
   const state = structuredClone(workspace.state);
   const { inserted, skipped, rows } = applyImport(state, selection, mapping, amountUnit);
   const snapshotHash = digest(selection);
@@ -189,7 +271,7 @@ function recoverInterrupted(workspace: SheetsWorkspace) {
 }
 
 async function generate(workspace: SheetsWorkspace, command: Extract<SheetsCommand, { action: "generate" }>, dependencies: SheetsDependencies): Promise<SheetsResult> {
-  const fingerprint = digest({ mode: command.mode, snapshotHash: workspace.selection!.snapshotHash });
+  const fingerprint = digest({ mode: command.mode, snapshotHash: workspace.selection!.snapshotHash, ...(workspace.mode === "public" ? { period: workspace.state.period, revision: workspace.state.revision } : {}) });
   const previous = workspace.generationRequests.find(request => request.requestId === command.requestId);
   if (previous) {
     if (previous.fingerprint !== fingerprint) throw new AppError("This request key belongs to a different generation request.", 409);
@@ -198,7 +280,9 @@ async function generate(workspace: SheetsWorkspace, command: Extract<SheetsComma
     return { dashboard: sheetsDashboard(workspace), draft: presentDraft(workspace.state, draft), replayed: true };
   }
   if (workspace.generationRequests.some(request => request.status === "running")) throw new AppError("A draft is already running. Please wait.", 409);
-  if (command.mode === "live" && workspace.generationRequests.filter(request => request.mode === "live").length >= 12) throw new AppError("This workbook demo reached its twelve live-attempt limit. Use rehearsal mode or reset the workbook demo.", 429);
+  if (workspace.mode === "public" && workspace.generationRequests.length >= 50) throw new AppError("This workbook has reached its fifty saved report attempts. Delete its Tidepath workbook data before starting a new reporting workspace; your source and exported tabs remain in Google Sheets.", 429);
+  if (workspace.mode !== "public" && command.mode === "live" && workspace.generationRequests.filter(request => request.mode === "live").length >= 12) throw new AppError("This workbook demo reached its twelve live-attempt limit. Use rehearsal mode or reset the workbook demo.", 429);
+  await dependencies.beforeGeneration?.(workspace, command);
   const request = { requestId: command.requestId, mode: command.mode, fingerprint, status: "running" as const, startedAt: new Date().toISOString() };
   workspace.generationRequests.push(request);
   await dependencies.checkpoint?.(workspace);
@@ -240,15 +324,29 @@ export async function executeSheetsCommand(workspace: SheetsWorkspace, rawComman
   if (recoverInterrupted(workspace)) await dependencies.checkpoint?.(workspace);
   if (command.action === "status") return { dashboard: sheetsDashboard(workspace) };
   if (command.action === "reset") {
+    if (workspace.mode === "public") throw new AppError("Use the account data-deletion control to remove your stored workbook data.", 403);
     if (workspace.generationRequests.some(request => request.status === "running")) throw new AppError("Wait for the active draft before resetting.", 409);
     replaceWorkspace(workspace, createSheetsWorkspace(workspace.workbookId));
     return { dashboard: sheetsDashboard(workspace) };
   }
-  if (command.action === "preview") return { dashboard: sheetsDashboard(workspace), preview: previewImport(workspace, command.selection, command.mapping, command.amountUnit) };
+  if ((command.action === "preview" || command.action === "import") && workspace.mode === "public" && (!command.period || command.currency !== "USD")) throw new AppError("Choose reporting dates and confirm that every selected gift is denominated in USD.");
+  if (command.action === "preview") return { dashboard: sheetsDashboard(workspace), preview: previewImport(workspace, command.selection, command.mapping, command.amountUnit, command.period) };
   if (command.action === "import") {
-    const preview = previewImport(workspace, command.selection, command.mapping, command.amountUnit);
+    if (workspace.mode === "public" && command.previewHash === workspace.selection?.previewHash
+      && workspace.selection.snapshotHash === digest(command.selection) && digest(workspace.selection.mapping) === digest(command.mapping)
+      && workspace.selection.amountUnit === command.amountUnit && digest(workspace.state.period) === digest(publicPeriod(command.period!))) {
+      return { dashboard: sheetsDashboard(workspace), importResult: { inserted: 0, skipped: workspace.state.gifts.length, updated: 0, removed: 0 }, replayed: true };
+    }
+    const preview = previewImport(workspace, command.selection, command.mapping, command.amountUnit, command.period);
     if (preview.previewHash !== command.previewHash) throw new AppError("The selected cells or mapping changed after preview. Review a fresh preview before import.", 409);
     const working = structuredClone(workspace);
+    if (workspace.mode === "public") {
+      const imported = publicImport(working, command.selection, command.mapping, command.amountUnit, command.period!);
+      working.state = imported.state;
+      working.selection = binding(command.selection, command.mapping, command.amountUnit, preview);
+      replaceWorkspace(workspace, working);
+      return { dashboard: sheetsDashboard(workspace), importResult: { inserted: imported.inserted, skipped: imported.skipped, updated: imported.updated, removed: imported.removed } };
+    }
     const { inserted, skipped } = applyImport(working.state, command.selection, command.mapping, command.amountUnit);
     working.selection = binding(command.selection, command.mapping, command.amountUnit, preview);
     replaceWorkspace(workspace, working);
@@ -275,14 +373,15 @@ export async function executeSheetsCommand(workspace: SheetsWorkspace, rawComman
     const text = exportDraft(working.state, command.draftId);
     const sourceRows = draft.sourceIds.slice(0, 1000).map(id => {
       const source = working.state.sources.find(source => source.id === id)!;
-      return [id, `${source.source}, row ${source.row}`];
+      const sourceUrl = `https://docs.google.com/spreadsheets/d/${workspace.workbookId}/edit#gid=${source.values.sheet_id}&range=${encodeURIComponent(String(source.values.source_range))}`;
+      return workspace.mode === "public" ? [id, `${source.source}, row ${source.row}`, sourceUrl] : [id, `${source.source}, row ${source.row}`];
     });
-    const rows = [["Tidepath approved report", draft.title], ["Data", "Selected donation rows plus fictional Q3 2026 program activity"], ["Period", working.state.period.label], ["As of", working.state.asOf], ["Draft ID", draft.id], ["Revision", String(draft.revision)], ["Approved at", draft.approvedAt!], ["Approval digest", draft.approvedDigest!], ["Source range", `${working.selection!.sheetName}!${working.selection!.a1}`], ["Narrative", draft.narrative], ...draft.claims.map(claim => {
+    const rows = [["Tidepath approved report", draft.title], ["Data", workspace.mode === "public" ? "Imported USD donation records. Program activity was not provided." : "Selected donation rows plus fictional Q3 2026 program activity"], ["Period", working.state.period.label], ["As of", working.state.asOf], ["Draft ID", draft.id], ["Revision", String(draft.revision)], ["Approved at", draft.approvedAt!], ["Approval digest", draft.approvedDigest!], ["Source range", `${working.selection!.sheetName}!${working.selection!.a1}`], ["Narrative", draft.narrative], ...draft.claims.map(claim => {
       const metric = getMetrics(working.state).find(metric => metric.id === claim.metricId)!;
       return [metric.label, metric.unit === "USD" ? `$${claim.value.toFixed(2)}` : `${claim.value} ${metric.unit}`];
     }), ["Evidence", "Source references"], ...sourceRows, ["Delivery", "Approved report only. No external message or submission was sent."]];
     // Apps Script writes these strings as literal text and verifies no formulas were created.
-    extra.export = { text, rows, draftId: draft.id, revision: draft.revision, approvalDigest: draft.approvedDigest!, sourceHash: working.selection!.snapshotHash };
+    extra.export = { text, rows: workspace.mode === "public" ? rows.map(row => [row[0], row[1], row[2] ?? ""]) : rows, draftId: draft.id, revision: draft.revision, approvalDigest: draft.approvedDigest!, sourceHash: working.selection!.snapshotHash };
   }
   replaceWorkspace(workspace, working);
   return { dashboard: sheetsDashboard(workspace), ...extra };

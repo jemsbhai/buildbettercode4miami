@@ -1,4 +1,5 @@
-import type { Attendance, Claim, DemoState, Donor, Draft, MergeCandidate, Metric, QueueItem, ValidationIssue } from "./types";
+import { createHash } from "node:crypto";
+import type { Attendance, Claim, DemoState, Donor, Draft, Gift, MergeCandidate, Metric, QueueItem, ValidationIssue } from "./types";
 import { currentGivingCycle } from "./records-schedule";
 
 const unique = (items: string[]) => [...new Set(items)];
@@ -61,7 +62,7 @@ export function detectMergeCandidates(state: DemoState): MergeCandidate[] {
   for (const { donors, reasons } of groups) {
     if (donors.length < 2) continue;
     const donorIds = donors.map((donor) => donor.id).sort();
-    const id = `merge:${donorIds.join("+")}`;
+    const id = `merge:${state.reportScope === "donations" ? createHash("sha256").update(JSON.stringify(donorIds)).digest("hex") : donorIds.join("+")}`;
     candidates.push({ id, donorIds, name: donors[0].name, reasons: unique(reasons), status: "pending", sourceIds: unique(donors.flatMap((donor) => aliases.get(donor.id)!.flatMap((alias) => alias.sourceIds))) });
   }
   return [...state.candidates.filter((candidate) => candidate.status !== "pending"), ...candidates];
@@ -72,6 +73,13 @@ export function getMetrics(state: DemoState): Metric[] {
   const donorIds = unique(gifts.map((gift) => canonicalDonorId(state, gift.donorId)));
   const attended = state.attendance.filter((item) => inQuarter(state, item.date) && item.status === "present");
   const hours = state.volunteerHours.filter((item) => inQuarter(state, item.date));
+  // The complete imported table supports exclusions and zero totals as well as
+  // included gifts. A zero-gift reporting period still has reviewable evidence.
+  const donationSources = unique(state.gifts.flatMap(gift => gift.sourceIds));
+  if (state.reportScope === "donations") return [
+    { id: "donors", label: "Donors in reporting period", value: donorIds.length, unit: "people", sourceIds: donationSources },
+    { id: "giving", label: "Giving in reporting period", value: gifts.reduce((sum, gift) => sum + gift.amountCents, 0) / 100, unit: "USD", sourceIds: donationSources },
+  ];
   return [
     { id: "participants", label: "Enrolled participants", value: state.participants.length, unit: "people", sourceIds: unique(state.participants.flatMap((item) => item.sourceIds)) },
     { id: "donors", label: "Quarter donors", value: donorIds.length, unit: "people", sourceIds: unique(gifts.flatMap((gift) => [...gift.sourceIds, ...state.donors.find((donor) => donor.id === gift.donorId)!.sourceIds])) },
@@ -244,7 +252,7 @@ export function importGiftCsv(state: DemoState, csv: string, sourceName: string)
     if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) throw new Error(`Row ${index + 1}: invalid email`);
     if (!/^\d+$/.test(values.amount_cents) || !Number.isSafeInteger(Number(values.amount_cents)) || Number(values.amount_cents) <= 0) throw new Error(`Row ${index + 1}: amount_cents must be a positive safe integer`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(values.date) || Number.isNaN(Date.parse(values.date)) || new Date(values.date).toISOString().slice(0, 10) !== values.date) throw new Error(`Row ${index + 1}: invalid ISO date`);
-    if (!["online", "tickets", "auction", "check"].includes(values.channel)) throw new Error(`Row ${index + 1}: unsupported gift channel`);
+    if (!["online", "tickets", "auction", "check", ...(state.reportScope === "donations" ? ["other", "unspecified"] : [])].includes(values.channel)) throw new Error(`Row ${index + 1}: unsupported gift channel`);
     const existing = working.gifts.find((gift) => gift.id === values.gift_id);
     if (existing) {
       if (existing.donorId !== values.donor_id || existing.amountCents !== Number(values.amount_cents) || existing.date !== values.date || existing.channel !== values.channel) throw new Error(`Row ${index + 1}: gift ID conflicts with an existing transaction`);
@@ -269,7 +277,7 @@ export function importGiftCsv(state: DemoState, csv: string, sourceName: string)
     working.sources.push({ id: sourceId, source: sourceName.replace(/[\r\n]/g, " ").slice(0, 120) || "uploaded.csv", row: index + 1, values: { ...values, amount_cents: Number(values.amount_cents) }, importedAt: new Date().toISOString() });
     if (!donor) { donor = { id: values.donor_id, name: values.name, emails: values.email ? [normalizeEmail(values.email)] : [], phone: values.phone, sourceIds: [sourceId] }; working.donors.push(donor); }
     else { donor.sourceIds = unique([...donor.sourceIds, sourceId]); donor.emails = unique([...donor.emails, ...(values.email ? [normalizeEmail(values.email)] : [])]); }
-    working.gifts.push({ id: values.gift_id, donorId: values.donor_id, amountCents: Number(values.amount_cents), date: values.date, channel: values.channel as "online" | "tickets" | "auction" | "check", sourceIds: [sourceId] });
+    working.gifts.push({ id: values.gift_id, donorId: values.donor_id, amountCents: Number(values.amount_cents), date: values.date, channel: values.channel as Gift["channel"], sourceIds: [sourceId] });
     inserted++;
   }
   if (inserted) {

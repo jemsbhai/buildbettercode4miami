@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="140" viewBox="0 0 220 140">
+  <rect width="220" height="140" fill="#f8f8f3"/>
+  <path fill="#e5eee5" d="M0 105c49-37 79 38 126-1s69-15 94-34v70H0Z"/>
+  <path fill="#1d695b" d="M22 20h29a10 10 0 0 1 10 10v19a20 20 0 0 1-20 20H32A20 20 0 0 1 12 49V30a10 10 0 0 1 10-10Z"/>
+  <path fill="#fff" d="M32 31h7v8h9v6h-9v10c0 3 2 4 5 4h4v6h-6c-7 0-10-4-10-10V45h-7v-6h7Z" transform="translate(0 -3)"/>
+  <text x="70" y="51" fill="#253d39" font-family="Arial,sans-serif" font-weight="700" font-size="25" letter-spacing="-1">Tidepath</text>
+  <text x="16" y="94" fill="#253d39" font-family="Arial,sans-serif" font-weight="700" font-size="14">Less admin. More human.</text>
+  <text x="16" y="116" fill="#4f6559" font-family="Arial,sans-serif" font-size="11">Donation reports you can review.</text>
+</svg>

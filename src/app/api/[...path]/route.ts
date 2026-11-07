@@ -43,6 +43,7 @@ function guardOrigin(request: Request) {
 }
 
 async function handle(request: Request, context: Context) {
+  if (process.env.TIDEPATH_PUBLIC_SERVICE === "1" || process.env.VERCEL) return response({ error: "Demo endpoints are unavailable on the public service." }, 404);
   const { path } = await context.params;
   const [resource, id, action] = path;
   const method = request.method;

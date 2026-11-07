@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{font:14px/1.6 system-ui,sans-serif;color:#253d39;background:#f8f8f3;margin:24px}h1{font-size:22px;margin:0 0 12px}button{font:inherit;background:#1d695b;color:white;padding:10px 18px;border:0;border-radius:8px;cursor:pointer}button:disabled{opacity:.5;cursor:wait}button:focus-visible{outline:3px solid #875c24;outline-offset:3px}.error{color:#963f31}p{max-width:650px}strong{overflow-wrap:anywhere}
+  </style>
+</head>
+<body>
+  <h1>Connect this spreadsheet</h1>
+  <p>Choose <strong id="workbook">the spreadsheet you have open</strong> in Google’s file picker. This gives Tidepath access to this file. Use the same Google account as the one editing this spreadsheet.</p>
+  <p>After connecting, you choose the donation range. Tidepath reads that range and writes approved reports to a new tab.</p>
+  <button id="choose" disabled>Choose spreadsheet</button>
+  <button id="close" hidden>Return to Tidepath</button>
+  <p id="status" role="status" aria-live="polite">Loading Google’s file picker…</p>
+  <p id="error" role="alert" class="error"></p>
+  <script>
+    'use strict';
+    var pickerReady = false;
+    function fail(error) {
+      document.getElementById('error').textContent = String(error && error.message ? error.message : error).replace(/^Error:\s*/, '');
+      document.getElementById('status').textContent = '';
+      document.getElementById('choose').disabled = !pickerReady;
+    }
+    function onPickerApiLoad() {
+      gapi.load('picker', { callback: function () { pickerReady = true; document.getElementById('choose').disabled = false; document.getElementById('status').textContent = 'Ready to connect.'; }, onerror: function () { fail('Google’s picker could not load. Close this dialog and retry.'); }, timeout: 15000, ontimeout: function () { fail('Google’s picker timed out. Close this dialog and retry.'); } });
+    }
+    document.getElementById('close').addEventListener('click', function () { google.script.host.close(); });
+    document.getElementById('choose').addEventListener('click', function () {
+      document.getElementById('choose').disabled = true; document.getElementById('error').textContent = '';
+      google.script.run.withFailureHandler(fail).withSuccessHandler(function (config) {
+        document.getElementById('workbook').textContent = config.workbookName;
+        var view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS);
+        var picker = new google.picker.PickerBuilder().addView(view).setOAuthToken(config.oauthToken)
+          .setDeveloperKey(config.developerKey).setAppId(config.appId).setOrigin(google.script.host.origin)
+          .setTitle('Choose ' + config.workbookName).setCallback(function (data) {
+            if (data.action === google.picker.Action.CANCEL) { document.getElementById('status').textContent = 'No spreadsheet connected. You can try again.'; document.getElementById('choose').disabled = false; }
+            if (data.action !== google.picker.Action.PICKED) return;
+            if (!data.docs || data.docs.length !== 1 || data.docs[0].id !== config.workbookId) { fail('Choose the spreadsheet currently open: ' + config.workbookName + '.'); return; }
+            document.getElementById('status').textContent = 'Checking your account and permission to edit this spreadsheet…';
+            google.script.run.withFailureHandler(fail).withSuccessHandler(function (result) {
+              document.getElementById('status').textContent = 'Connected' + (result.email ? ' as ' + result.email : '') + '. Return to Tidepath to select your donation rows.';
+              document.getElementById('choose').hidden = true; document.getElementById('close').hidden = false;
+            }).tidepathConfirmWorkbook(data.docs[0].id);
+          }).build();
+        // Keep the token out of the DOM, storage, logs and any application request.
+        config.oauthToken = undefined;
+        picker.setVisible(true);
+      }).tidepathPickerConfiguration();
+    });
+    google.script.run.withFailureHandler(fail).withSuccessHandler(function (context) { document.getElementById('workbook').textContent = context.workbookName; }).tidepathContext();
+  </script>
+  <script src="https://apis.google.com/js/api.js?onload=onPickerApiLoad" onerror="fail('Google’s picker could not load. Check your connection and retry.')"></script>
+</body>
+</html>

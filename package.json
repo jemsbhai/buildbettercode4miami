@@ -8,23 +8,28 @@
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/test.mjs",
-    "sheets:bridge": "node --env-file-if-exists=.env.local --import tsx scripts/sheets-bridge.ts"
+    "sheets:bridge": "node --env-file-if-exists=.env.local --import tsx scripts/sheets-bridge.ts",
+    "public:migrate": "node --env-file-if-exists=.env.public.local --import tsx scripts/migrate-public.ts",
+    "public:verify-hosted": "node scripts/verify-public-hosted.mjs"
   },
   "dependencies": {
+    "@openai/agents": "0.21.0",
+    "jose": "^6.2.15",
+    "lucide-react": "^0.468.0",
     "next": "16.4.5",
+    "openai": "7.53.0",
+    "pg": "^8.23.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "@openai/agents": "0.21.0",
-    "openai": "7.53.0",
-    "zod": "^4.0.0",
-    "lucide-react": "^0.468.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.0",
     "@types/node": "^20.0.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "tsx": "^4.20.0"
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
   },
   "engines": {
     "node": ">=22.0.0"

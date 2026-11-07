@@ -38,6 +38,8 @@ The grant example uses a **120-word answer limit**, counting narrative and rende
 
 ## Google Sheets sidebar
 
+The public product is being built separately on `codex/tidepath-public-addon`: a standalone Editor add-on with verified Google identity, per-file Picker authorization, tenant-scoped PostgreSQL storage, and real donation-only reports. Customer installation requires no script pasting, local bridge, or backend token. **Public installation is pending OAuth setup, native acceptance testing and Google Marketplace review.** See the [public release runbook](docs/PUBLIC-ADDON-RELEASE.md) and [listing materials](docs/PUBLIC-ADDON-LISTING.md). The instructions below remain the isolated hackathon demonstration.
+
 The new sidebar brings donation reconciliation and report approval into Google Sheets: select rows, map columns, preview/import, review duplicate identities, and write an approved report to a new tab. It reuses the existing backend and keeps workbook sessions separate from the web-app demo. Program metrics remain explicitly fictional; the integration does not synchronize arbitrary spreadsheets or expose counseling notes.
 
 Use Node.js 24 and start `npm run sheets:bridge`, then follow the [Google Sheets installation and demo guide](docs/GOOGLE-SHEETS.md) for the protected HTTPS connection and bound Apps Script files. The complete native workflow passed in a single-account Chrome Incognito session: import, Rosa merge, live report, wrong-figure approval block, changed-source write block, approved new-tab write and duplicate-safe retry. All 138 automated tests and the production build also pass.

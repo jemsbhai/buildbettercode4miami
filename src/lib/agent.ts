@@ -128,6 +128,9 @@ function providerFailure(error: unknown): { message: string; code: string } {
 
 export async function prepareDraft(state: DemoState, request: DraftRequest, dependencies: DraftDependencies = {}): Promise<{ draft: Draft; run: AgentRun }> {
   const started = Date.now();
+  const draftInstructions = state.reportScope === "donations"
+    ? `${instructions}\nThis workspace contains donation records only. No program activities, services, beneficiaries, outcomes or organizational mission were supplied. Omit all such claims and metrics. Describe only the imported giving and reviewed donor identities.`
+    : instructions;
   const events: RunEvent[] = [];
   const event = (action: string, detail: string, sourceIds: string[] = []) => events.push({ id: randomUUID(), at: new Date().toISOString(), action, detail, sourceIds: [...sourceIds] });
   const metrics = getMetrics(state);
@@ -151,6 +154,10 @@ export async function prepareDraft(state: DemoState, request: DraftRequest, depe
     sourceIds, dataRevision: state.revision, originDataRevision: state.revision, sourceFingerprint: draftSourceFingerprint(state, request),
     revision: 1, status: "pending", mode: request.mode, createdAt: new Date().toISOString(), runId: randomUUID(),
   };
+  if (state.reportScope === "donations" && request.kind === "report") {
+    draft.title = "Donation reconciliation report";
+    draft.narrative = "This report summarizes the imported donation records for the selected reporting period. Donor identities reflect the recorded identifiers and any reviewed merge decisions. Program activity and outcomes were not provided and are not included.";
+  }
   const evidence: DraftEvidence = {
     period: { ...state.period }, asOf: state.asOf,
     metrics: task ? [] : metrics.map(({ id, label, value, unit }) => ({ id, label, value, unit })),
@@ -167,7 +174,7 @@ export async function prepareDraft(state: DemoState, request: DraftRequest, depe
     inputTokens: usage.reduce((sum, item) => sum + item.inputTokens, 0), outputTokens: usage.reduce((sum, item) => sum + item.outputTokens, 0),
     usageKnown: !unsettledCall && usage.every((item) => item.known !== false), attempts,
     maxTurns: MAX_INITIAL_TURNS, durationMs: Date.now() - started,
-    inputSnapshot: structuredClone({ request: { kind: draft.kind, queueItemId: draft.queueItemId, grantId: draft.grantId, mode: draft.mode }, dataRevision: draft.originDataRevision, sourceFingerprint: draft.sourceFingerprint, sourceIds, evidence, instructions }),
+    inputSnapshot: structuredClone({ request: { kind: draft.kind, queueItemId: draft.queueItemId, grantId: draft.grantId, mode: draft.mode }, dataRevision: draft.originDataRevision, sourceFingerprint: draft.sourceFingerprint, sourceIds, evidence, instructions: draftInstructions }),
     outputSnapshot: structuredClone({ attempts: snapshots, ...(status === "completed" ? { draft: { title: draft.title, narrative: draft.narrative, claims: draft.claims, sourceIds } } : {}) }),
   });
   const fail = (message: string, issues: ValidationIssue[] = []): never => {
@@ -212,7 +219,7 @@ export async function prepareDraft(state: DemoState, request: DraftRequest, depe
           }
         };
         const result = await Promise.race([(dependencies.runModel ?? runSdkModel)({
-          phase, kind: request.kind, model, instructions, signal: controller.signal,
+          phase, kind: request.kind, model, instructions: draftInstructions, signal: controller.signal,
           maxTurns: phase === "initial" ? MAX_INITIAL_TURNS : 1,
           ...(phase === "initial" ? { readEvidence } : { evidence: structuredClone(evidence), rejectedOutput: previousOutput, issues: structuredClone(issues) }),
           reportUsage,

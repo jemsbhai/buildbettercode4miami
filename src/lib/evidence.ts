@@ -29,6 +29,7 @@ export function draftSourceFingerprint(state: DemoState, target: DraftTarget): s
   }
   return digest({
     kind: target.kind,
+    ...(state.reportScope === "donations" ? { reportScope: state.reportScope, reportSourceSnapshot: state.reportSourceSnapshot } : {}),
     asOf: state.asOf,
     period: target.kind === "followup" ? undefined : state.period,
     metrics,
