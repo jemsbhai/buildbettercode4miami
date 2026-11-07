@@ -13,12 +13,12 @@ Historical version-1 evidence includes native authorization, Google Picker, impo
 | Publisher declaration | Non-trader; personal, noncommercial project |
 | Pricing | Free, with the published service limits |
 | Public support/privacy contact | `jemsbhai@gmail.com` |
-| Developer website | `https://tidepath-sheets.vercel.app/terms` — identifies the operator |
-| App website | `https://tidepath-sheets.vercel.app/` |
+| Developer website | `https://tidepath.muntasersyed.com/terms` — identifies the operator |
+| App website | `https://tidepath.muntasersyed.com/` |
 | Cloud project | `tidepath-public-2026` / `397160375233` |
 | Script ID | `1v01mOjaBs8PKYubESf1PSwcYWFfrmsc_9wuckpO8HPxXcTdtrmO_9s3Q` |
 | Native ID-token audience | `397160375233-rdjvptver6ofn1gvqh9e7dagoqakir70.apps.googleusercontent.com` |
-| Web callback | `https://tidepath-sheets.vercel.app/api/auth/google/callback` |
+| Web callback | `https://tidepath.muntasersyed.com/api/auth/google/callback` |
 | Draft-configured script version | 1 (historical); update the saved SDK draft to the verified standard-only replacement before submission |
 
 Use **Tidepath** as the app title; the longer compatibility title was rejected by Google's consent configuration. Descriptive text can say **for Google Sheets™**, with the attribution **Google Sheets™ is a trademark of Google LLC.** Keep the consent title, script title and Marketplace title identical. [Google compatibility-branding guidance](https://developers.google.com/workspace/marketplace/terms/branding).

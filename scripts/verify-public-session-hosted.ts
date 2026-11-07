@@ -9,7 +9,7 @@ import { SESSION_COOKIE } from "../src/lib/public/web-auth";
  * not described as Google OAuth or native Sheets end-to-end verification.
  */
 async function verify() {
-  const origin = new URL(process.env.TIDEPATH_VERIFY_URL ?? "https://tidepath-sheets.vercel.app");
+  const origin = new URL(process.env.TIDEPATH_VERIFY_URL ?? "https://tidepath.muntasersyed.com");
   assert(origin.protocol === "https:" && !origin.username && !origin.password && origin.pathname === "/" && !origin.search && !origin.hash,
     "The verification target must be an HTTPS origin without credentials or a path.");
   const suffix = randomUUID();

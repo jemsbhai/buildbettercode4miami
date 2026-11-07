@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-const origin = process.env.TIDEPATH_VERIFY_URL || "https://tidepath-sheets.vercel.app";
+const origin = process.env.TIDEPATH_VERIFY_URL || "https://tidepath.muntasersyed.com";
 const url = new URL(origin);
 assert.equal(url.protocol, "https:", "Verify the actual HTTPS deployment");
 let checks = 0;

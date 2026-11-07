@@ -34,7 +34,7 @@ Google Sheets™ is a trademark of Google LLC.
 
 **Developer name:** Muntaser Syed, individual developer.
 
-**Trader status:** Non-trader; the publisher has declared this a personal, noncommercial project. No trader mailing address is collected for this declaration. The developer website is `https://tidepath-sheets.vercel.app/terms`, which identifies the operator.
+**Trader status:** Non-trader; the publisher has declared this a personal, noncommercial project. No trader mailing address is collected for this declaration. The developer website is `https://tidepath.muntasersyed.com/terms`, which identifies the operator.
 
 **Installation:** Individual Google accounts where allowed by their organization; admin installation policy remains under Google Workspace controls. No domain-wide delegation is used.
 
@@ -42,12 +42,12 @@ Google Sheets™ is a trademark of Google LLC.
 
 | Link field | Intended canonical URL |
 | --- | --- |
-| Website | `https://tidepath-sheets.vercel.app/` |
-| Privacy | `https://tidepath-sheets.vercel.app/privacy` |
-| Terms | `https://tidepath-sheets.vercel.app/terms` |
-| Support | `https://tidepath-sheets.vercel.app/support` |
-| Setup/help | `https://tidepath-sheets.vercel.app/support` |
-| Account management | `https://tidepath-sheets.vercel.app/account` |
+| Website | `https://tidepath.muntasersyed.com/` |
+| Privacy | `https://tidepath.muntasersyed.com/privacy` |
+| Terms | `https://tidepath.muntasersyed.com/terms` |
+| Support | `https://tidepath.muntasersyed.com/support` |
+| Setup/help | `https://tidepath.muntasersyed.com/support` |
+| Account management | `https://tidepath.muntasersyed.com/account` |
 
 Verify all URLs are publicly reachable and contain the final policy text before submitting. The publisher has supplied the developer identity, non-trader declaration, pricing and public support/privacy contact above. These are owner declarations, not an independent legal classification. Confirm that they match the saved Google configuration and deployed pages.
 

@@ -1,6 +1,6 @@
 # Public origin migration inventory
 
-Prepared November 7, 2026. This is a read-only inventory and migration checklist. No replacement origin has been verified or adopted by this document. Existing production URLs must not be replaced with an assumed Netlify hostname.
+Prepared November 7, 2026. The selected canonical origin is **https://tidepath.muntasersyed.com**. Local application sources, publisher guards, verification-script defaults and listing/reviewer links now use it. This is prepared migration code, not proof that the new host or DNS is live. The actual Netlify deployment target and the new CNAME remain pending.
 
 ## Domain findings
 
@@ -21,13 +21,13 @@ Read-only public DNS checks found:
 
 The [live personal website](https://muntasersyed.com/) identifies Muntaser Syed. The root operator subsequently confirmed the existing `sc-domain:muntasersyed.com` Domain property under `jemsbhai@gmail.com`: Settings showed **You are a verified owner**, with the property added September 20. Root-domain ownership covers its subdomains, so no additional TXT record is currently needed for this candidate. The existing GoDaddy browser session also opened the exact domain's DNS table with 12 records and record-management controls.
 
-A candidate requiring no new domain purchase is `tidepath.muntasersyed.com`. Once the publisher selects it and the Netlify site exists, add that exact custom subdomain to Netlify and create only its CNAME to the actual site hostname at the existing DNS provider. Preserve apex A records, `www`, email records and nameservers. Netlify documents this [external-DNS subdomain configuration](https://docs.netlify.com/manage/domains/configure-domains/configure-external-dns/). Confirm TLS and content before adopting the URL. This does not authorize a purchase, paid plan, DNS migration or change to the personal website.
+The selected subdomain `tidepath.muntasersyed.com` requires no new domain purchase. Once the Netlify site exists, add that exact custom subdomain to Netlify and create only its CNAME to the actual site hostname at the existing DNS provider. Preserve apex A records, `www`, email records and nameservers. Netlify documents this [external-DNS subdomain configuration](https://docs.netlify.com/manage/domains/configure-domains/configure-external-dns/). Confirm TLS and content before enabling native execution on the new host. This does not authorize a purchase, paid plan, DNS migration or change to the personal website.
 
 The GoDaddy form is prepared but unsaved: **CNAME**, name **tidepath**, default **1/2 Hour** TTL, empty target. Save remains disabled. Fill the target only after the actual Netlify deployment and custom-domain assignment have been verified. No existing record was selected for editing or deletion.
 
 ## Repository and private configuration inventory
 
-| Location | Change after the new origin is verified |
+| Location | Required change and current preparation |
 | --- | --- |
 | `integrations/google-sheets-addon/Code.gs` | Change fixed `TIDEPATH_ORIGIN_`; identity tokens continue to go only to this fixed HTTPS backend |
 | `integrations/google-sheets-addon/appsscript.json` | Change the exact `urlFetchWhitelist` origin, with trailing slash; no scope expansion |
@@ -37,13 +37,13 @@ The GoDaddy form is prepared but unsaved: **CNAME**, name **tidepath**, default 
 | Ignored staged release bundle | Regenerate with `--prepare`; paste final Code/manifest and already-prepared standard-only Sidebar into the existing standalone script |
 | Production environment | Set `TIDEPATH_PUBLIC_ORIGIN` to the exact HTTPS origin; retain verified Google audience/client configuration and restricted database role |
 | `scripts/verify-public-hosted.mjs`, `scripts/verify-public-session-hosted.ts` | Update default target; explicitly set `TIDEPATH_VERIFY_URL` for migration checks |
-| `src/app/privacy/page.tsx` | Update hosting-provider disclosure only after the provider is active; preserve accurate database/retention disclosure |
+| `src/app/privacy/page.tsx` | Prepared Netlify hosting-provider disclosure for the matching new deployment; database/retention disclosure is preserved |
 | Public website navigation | Links are relative; no hostname substitution is needed in the public components or install/account pages |
 | `public/google281391256ed28668.html` | Existing URL-prefix evidence only. Use the exact file/tag instructed by the new Search Console property if that method is needed; DNS Domain verification is separate |
 | Listing, reviewer and video docs | Update canonical links and scope justification endpoint; replace superseded v1 screenshot after native verification |
 | Release/database/runbook docs | Separate historical Vercel evidence from new production evidence; do not rewrite prior observations as tests of the new host |
 
-The current scan found hardcoded old-origin references in the files above and the public release/database/listing/reviewer/video documents. The native ID-token audience, Cloud project, script ID, six manifest scopes and Google Picker key restrictions need no change solely because the backend hostname changes. The Picker renders in Google's Apps Script frame; the public website origin is not its dialog origin.
+The source and private publisher configuration changes listed above are prepared for the new canonical origin. Historical release/database evidence is maintained separately by its operators. The native ID-token audience, Cloud project, script ID, six manifest scopes and Google Picker key restrictions need no change solely because the backend hostname changes. The Picker renders in Google's Apps Script frame; the public website origin is not its dialog origin.
 
 ## Google and Marketplace sequence
 
@@ -57,4 +57,4 @@ The current scan found hardcoded old-origin references in the files above and th
 8. Update Marketplace website/developer/support/setup/privacy/terms links, standard-only copy and real native screenshot; save draft. The Google scopes and sensitive-scope video gates remain. Record the video only against the final domain/native version/backend combination.
 9. Verify the replacement deployment and carefully retire the public project on the paid host under the root operator's direction. Preserve the unrelated demo and personal website. A redirect running on a paid host is still traffic to that host and is not evidence of zero public-usage charges.
 
-No domain, Google configuration, hosting setting or saved Marketplace draft was changed during this inventory.
+The root operator has saved the new exact web OAuth callback `https://tidepath.muntasersyed.com/api/auth/google/callback` and added `muntasersyed.com` to Authorized domains, temporarily retaining the old domain until the homepage is switched. DNS, final hosting verification, native version execution and saved Marketplace draft migration are still pending. Local source preparation did not mutate the existing personal website or its DNS records.

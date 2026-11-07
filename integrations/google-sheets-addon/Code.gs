@@ -1,6 +1,6 @@
 /** @OnlyCurrentDoc */
 /* Standalone Editor add-on. Publish this project; do not bind it to a customer's file. */
-var TIDEPATH_ORIGIN_ = 'https://tidepath-sheets.vercel.app';
+var TIDEPATH_ORIGIN_ = 'https://tidepath.muntasersyed.com';
 var TIDEPATH_SELECTION_PREFIX_ = 'tidepath.public.selection.v1.';
 var TIDEPATH_CONNECTED_PREFIX_ = 'tidepath.public.connected.v1.';
 
