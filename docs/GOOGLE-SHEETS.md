@@ -4,11 +4,15 @@ The sidebar connects selected donation rows to Tidepath's existing import, ident
 
 This integration covers donation reconciliation and reporting. Program figures in the report are explicitly labeled fictional Q3 2026 demo activity. It is not automatic spreadsheet synchronization, and it does not read or expose the main application's counseling records.
 
-**Verification:** the sidebar is installed in a bound Google Apps Script project and visible in Google Sheets, but the complete native workflow is not yet verified. Google rejected sidebar server calls with `PERMISSION_DENIED` in a Chrome session signed into multiple Google accounts; a single-account retry is pending.
+**Verification:** the full native Google Sheets workflow passed in a Chrome Incognito session signed into one Google account. All **138 automated tests**, the production build and TypeScript also passed under Node.js 24.
 
-- The final combined suite passed **138 automated tests**, including reset and Google permission-error handling. The production build and TypeScript passed under Node.js 24.
-- A real HTTP backend walkthrough imported the seven-gift fixture, reconciled five donor identities to three with **$635 preserved**, and approved/exported a live report with source-cell references and matching source/approval hashes. The model completed after two attempts, including one repair. This verifies the backend connection and live generation, not a native worksheet write.
-- Native setup completed: `Code.gs`, `Sidebar.html` and `appsscript.json` were installed with clasp; Google's consent flow completed; the Tidepath menu and sidebar appeared. Selected-range calls and an actual new-tab write still require the single-account browser retest below.
+- The sidebar connected, read the actual `Demo donations!A1:H8` selection, and previewed/imported seven gifts totaling **$635** across five donor identities. Approving Rosa's match in the sidebar changed the count to **three**, preserving the total and gift records.
+- A live `gpt-5.4-mini` report was generated through the sidebar in two model attempts, with verified provider usage of **1,664 input / 215 output tokens**. Changing giving to **999**, saving revision 2 and attempting approval produced the expected validation block requiring **635 USD**. Restoring the correct figure, saving revision 3 and approving succeeded.
+- After approval, changing the source amount from **125 to 126** blocked write-back because the selected source cells had changed. Restoring **125** allowed the exact approved report to be written to a new tab.
+- Retrying **Write approved report to new tab** reused that verified output. Native spreadsheet metadata showed exactly the source tab plus one report tab. Readback confirmed literal text, revision **3**, **$635**, **three donors**, and the source-cell references; the source amount was restored and all seven dates remained correct. Program figures remained explicitly labeled fictional.
+- An independent real HTTP backend walkthrough also passed; its live report completed after two attempts, including one repair. This is separate evidence from the successful native browser walkthrough.
+
+The initial `PERMISSION_DENIED` problem was resolved by using the single-account browser session described below. `Code.gs`, `Sidebar.html` and `appsscript.json` were installed with clasp, and Google's consent flow completed. The Apps Script API setting was enabled temporarily for installation with user approval, then turned off again after verification.
 
 The existing app's earlier verification is recorded separately in [VERIFICATION.md](VERIFICATION.md).
 
