@@ -4,6 +4,8 @@ Recorded November 7, 2026. These decisions refine the suggested plan; they do no
 
 | Decision | Reason | Revisit when |
 | --- | --- | --- |
+| Four-person team; uniform dev container targets ARM64 and x86-64 on macOS, Windows and Linux | Liam confirmed team size and shared tooling needs on November 7; see [project memory](PROJECT-CONTEXT.md) | Record validation per host/architecture once implemented; fourth teammate's role remains unassigned here |
+| Keep one root application and npm; adapt LevelUp's dev-container amenities only | This repository has no client/server workspace split; the reference's databases, Bun and personal mounts are not requirements | Actual application needs justify additional services or a workspace split |
 | Include Challenges 1, 2, 6 and 4 as explicitly requested | One integrated story spans action, accountability and controlled disclosure | Keep scope bounded within each challenge rather than removing requested challenges |
 | Implement one application plus a grant-year/category ledger for Challenge 6 | A quarterly report alone cannot meet the brief | Add another funder only after the first slice passes |
 | Include one week of counseling notes, exact preview, nonpayable exclusion and access audit | Challenge 4 is in scope; deterministic field filtering makes disclosure inspectable | Broader access roles and additional funders are pilot/expansion work |
@@ -31,7 +33,8 @@ Recorded November 7, 2026. These decisions refine the suggested plan; they do no
 
 - The event listing gives November 7–8, 2026, noon–9 PM Eastern and names Codex, the OpenAI API and OpenAI Agents SDK as accepted tooling. [Event listing](https://luma.com/codexmiami).
 - The project repository must be public with an MIT or Apache 2.0 license by the submission deadline. [Challenge overview](https://docs.google.com/document/d/1dTh6wVOAtDjGyCIVv28Pm94Yfz8Z4kGo8DFhRNDpgsw/edit).
-- **Unresolved:** actual submission cutoff, judging rubric, presentation duration, submission form and how combined challenge entries are judged. The event's closing time does not answer those questions.
+- **Submission cutoff supplied by Liam on November 7:** Sunday, November 8, 2026, **4:45 PM Eastern**. This is separate from the published 9 PM event close.
+- **Unresolved:** judging rubric, presentation duration, submission form and how combined challenge entries are judged.
 - The suggested plan says an organizer allowed combined challenges. Treat that as the plan's report of a conversation, not an independently verified published rule.
 
 ## Pilot boundary

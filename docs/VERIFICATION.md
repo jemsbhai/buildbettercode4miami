@@ -12,4 +12,29 @@ The browser walkthrough exposed and fixed an Origin check mismatch between Next'
 
 The visible default browser surface was approximately 600 pixels wide and rendered its compact navigation without horizontal overflow. A broader device matrix has not been run.
 
-Limits: external delivery is simulated; no message was sent. Funder documents are exported, not submitted. This verifies fictional local workflows, not production authentication, clinical privacy compliance, or multi-instance persistence. The organizer's actual submission cutoff and rubric remain unverified.
+Limits: external delivery is simulated; no message was sent. Funder documents are exported, not submitted. This verifies fictional local workflows, not production authentication, clinical privacy compliance, or multi-instance persistence. The judging rubric remains unverified.
+
+Documentation update, November 7: Liam supplied a final submission cutoff of **November 8, 2026, 4:45 PM Eastern**. Shared ARM64/x86-64 dev-container requirements are recorded in [project memory](PROJECT-CONTEXT.md); container implementation and cross-platform validation remain pending. This update did not rerun the application checks recorded above.
+
+## Shared development baseline — November 7, 2026
+
+The subsequent `feature/frontend-base` implementation uses Node **24.19.0**, npm **12.0.2**, Dev Container CLI **0.90.0**, and exact direct dependency versions from the existing lockfile. The multi-architecture Node Bookworm image is pinned by index digest. No transitive lockfile entry changed.
+
+| Environment exercised | Installation | Typecheck / 33 tests / production build | 32 deterministic HTTP checks |
+| --- | --- | --- | --- |
+| macOS ARM64, native Node/npm | Passed, including clean offline `npm ci` | Passed | Passed |
+| Linux ARM64, Docker Desktop on macOS ARM64 | Passed through the checked-in devcontainer | Passed | Passed |
+| Linux x86-64, emulated on the same ARM64 host | Passed using the image built from the checked-in configuration and matching runtime settings | Passed | Passed |
+
+Additional checks:
+
+- Both container architectures run as non-root `node`, have writable workspace/dependency/build directories, can access the Git checkout, and provide Git, Bash, curl, ripgrep and less.
+- ARM64 container recreation reused its isolated volumes and completed `npm ci`; typecheck still passed after recreation. Host and container dependency/build directories remained separate.
+- A temporary bind-mounted route was served, edited, and served with its changed content by the ARM64 development server. The probe and temporary state were removed afterward. This verifies source watching/recompilation, not browser HMR behavior.
+- The toolchain checker rejected incorrect npm and non-npm installer user agents. npm rejected incompatible runtime/package-manager declarations in isolated failure fixtures before running their scripts.
+- The image's bundled npm **11.17.0** successfully bootstrapped to **12.0.2** from a read-only checkout containing the strict declarations, matching the documented native/CI upgrade path.
+- An occupied port 3210 caused `npm run verify` to fail without sending requests to the existing server. Successful checks used disposable state, made no live calls, and left no `.data/state.json` in the checkout.
+- A SHA-256 snapshot of all 58 tracked/unignored source/configuration files was unchanged by the final validation runs. `git diff --check`, JavaScript syntax checks, and **actionlint 1.7.9** passed.
+- Final review moved TypeScript's incremental cache under `.next/cache` to isolate it between workflows. Typecheck and production build were repeated successfully in all three environments, and the cache file was confirmed in each build directory.
+
+Not yet verified: hosted GitHub Actions runs, native x86-64 hardware, Windows/WSL2, the updated PowerShell launcher, and interactive VS Code reopen/forwarding/browser HMR. The Dev Containers extension is installed locally, but Computer Use could not start its native automation pipe, preventing the interactive checks. The workflow is configured for native Linux ARM64 and x86-64 runners; configuration and local checks do not establish a hosted result. No commit, push or live model test was performed for this baseline.

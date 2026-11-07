@@ -2,6 +2,8 @@
 
 Repository: https://github.com/jemsbhai/buildbettercode4miami
 
+Team size is **four**. Existing assignments below cover the lead and two frontend teammates; the fourth role remains to be recorded. See [project memory](PROJECT-CONTEXT.md) for shared dev-container requirements. **Final submission: Sunday, November 8, 2026, 4:45 PM Eastern**, supplied by Liam; the event continues until 9 PM.
+
 The existing Next.js + TypeScript app already connects all four challenge flows. Extend it rather than starting separate apps. Node.js 22+ is required (24 recommended). Run `npm ci`, then `npm run dev`; demo mode needs no API key.
 
 Without repository write access, fork the repo, clone your fork, create your feature branch from `codex/tidepath-mvp`, and open a pull request back to `jemsbhai/buildbettercode4miami:codex/tidepath-mvp`. Collaborators with write access can push feature branches directly. Each PR should describe the user-facing change and include a screenshot and verification results.

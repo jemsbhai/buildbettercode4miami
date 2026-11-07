@@ -8,7 +8,9 @@ Public repository: [jemsbhai/buildbettercode4miami](https://github.com/jemsbhai/
 
 ## Run locally
 
-Requires **Node.js 22+** (24 recommended) and npm. The current OpenAI Agents SDK requires Node 22 even though Next.js itself accepts older versions.
+The primary workflow is **VS Code → Dev Containers: Reopen in Container**, with Docker running in Linux-container mode. The container installs dependencies automatically; then run `npm run dev` and open the forwarded port 3000. No API key is needed for demo mode.
+
+Native development requires exactly **Node.js 24.19.0 and npm 12.0.2**. See [development setup](docs/DEVELOPMENT.md) for macOS, Windows/WSL2 and Linux prerequisites, runtime installation, rebuilds, and validation.
 
 ```sh
 git clone https://github.com/jemsbhai/buildbettercode4miami.git
@@ -17,7 +19,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Next.js. On this Windows workstation, the existing system Node is older; `powershell -ExecutionPolicy Bypass -File scripts/dev.ps1` uses a compatible installed or Codex-bundled Node without modifying the system installation.
+Open the local URL printed by Next.js. The optional Windows launcher, `powershell -File scripts/dev.ps1`, checks the same pinned toolchain and runs the development server.
 
 The demo starts with a deterministic fictional Q3 2026 dataset. The **Reset demo** control restores the same scenario. State is saved in `.data/state.json` and survives a server restart.
 
@@ -38,6 +40,7 @@ The grant example uses a **120-word answer limit**, counting narrative and rende
 
 ## Collaborate
 
+- [Project memory: four-person team, portable development requirements and deadline](docs/PROJECT-CONTEXT.md)
 - [Build plan and acceptance gates](docs/BUILD-PLAN.md)
 - [Teammate A: operations and counseling](docs/TEAMMATE-A.md)
 - [Teammate B: reports and grants](docs/TEAMMATE-B.md)
@@ -76,10 +79,10 @@ Amounts must be positive integer cents; dates must be ISO `YYYY-MM-DD`; channels
 ## Verify
 
 ```sh
-npm run typecheck
-npm test
-npm run build
+npm run verify
 ```
+
+This runs the toolchain check, typecheck, tests, production build, and deterministic HTTP smoke checks on port 3210 using disposable state. Port 3210 must be free. It stops its server afterward and does not use live API calls or reset your saved demo.
 
 With a local server on port 3210:
 
@@ -94,4 +97,4 @@ Set `TIDEPATH_URL` for a different local port. The smoke script **resets local d
 
 This is a local, single-operator hackathon app. It has no authentication, independent reviewer identity, multi-instance database or clinical security boundary. The counselor role in audit entries is a demo actor. Do not use it for real counseling records; a pilot needs authenticated roles, a transactional store, access controls, and a reviewed retention/deployment design. Approved funder copies are exported, not submitted. The follow-up outbox visibly simulates delivery and does not prove deliverability to a real recipient.
 
-The [organizer page](https://luma.com/codexmiami) lists Codex, OpenAI API and OpenAI Agents SDK. It lists the event ending Sunday, November 8, at 9 PM Eastern; the actual submission cutoff and judging rubric still need confirmation. The challenge overview requires a public GitHub repository with MIT or Apache 2.0 licensing by submission. The public repository includes an MIT license. Event submission remains unfinished.
+**Final submission is due Sunday, November 8, 2026, at 4:45 PM Eastern**, as supplied by Liam on November 7. The [organizer page](https://luma.com/codexmiami) lists Codex, OpenAI API and OpenAI Agents SDK and an event close of 9 PM Eastern, separate from submission. The judging rubric still needs confirmation. The challenge overview requires a public GitHub repository with MIT or Apache 2.0 licensing by submission. The public repository includes an MIT license. Event submission remains unfinished.
