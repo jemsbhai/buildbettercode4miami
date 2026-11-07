@@ -1,0 +1,5 @@
+gift_id,donor_id,name,email,phone,amount_cents,date,channel
+import-online-501,donor-rosa-new,Rosa Delgado,rosa@example.test,+1-305-555-0101,7500,2026-09-29,online
+import-ticket-502,donor-maya,Maya Laurent,maya@example.test,+1-305-555-0157,4000,2026-09-29,tickets
+import-auction-503,donor-maya,Maya Laurent,maya@example.test,+1-305-555-0157,12000,2026-09-29,auction
+import-check-504,donor-jordan,Jordan Cruz,jordan@example.test,+1-305-555-0158,6500,2026-09-30,check
