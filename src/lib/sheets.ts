@@ -4,6 +4,7 @@ import { DraftGenerationError, prepareDraft } from "./agent";
 import { decideMerge, getMetrics, importGiftCsv } from "./domain";
 import { digest, draftIsCurrent } from "./evidence";
 import { createSeed } from "./seed";
+import { PUBLIC_AI_DISABLED_MESSAGE } from "./public-report-policy";
 import { AppError, approveDraft, checkDraft, editDraft, exportDraft, findDraft, presentDraft } from "./service";
 import type { AgentRun, DemoState } from "./types";
 import { SHEETS_FIELDS, type SheetsAmountUnit, type SheetsBinding, type SheetsCommand, type SheetsDashboard, type SheetsGiftRow, type SheetsMapping, type SheetsPeriod, type SheetsPreview, type SheetsResult, type SheetsSelection, type SheetsWorkspace } from "./sheets-types";
@@ -74,7 +75,7 @@ export function sheetsDashboard(workspace: SheetsWorkspace): SheetsDashboard {
     revision: state.revision, asOf: state.asOf, period: state.period, metrics: getMetrics(state), candidates: state.candidates,
     donors: state.donors.map(({ id, name, emails, phone, mergedInto }) => ({ id, name, emails, phone, mergedInto })),
     giftCount: state.gifts.length, drafts: state.drafts.map(draft => ({ ...presentDraft(state, draft), issues: checkDraft(state, draft) })),
-    runs: state.runs, selection: workspace.selection, liveAvailable: Boolean(process.env.OPENAI_API_KEY), programData: workspace.mode === "public" ? "not_provided" as const : "fictional_demo" as const,
+    runs: state.runs, selection: workspace.selection, liveAvailable: workspace.mode !== "public" && Boolean(process.env.OPENAI_API_KEY), programData: workspace.mode === "public" ? "not_provided" as const : "fictional_demo" as const,
     ...(workspace.mode === "public" ? { currency: "USD" as const, importMode: "replace_snapshot" as const } : {}),
   });
 }
@@ -321,6 +322,7 @@ export async function executeSheetsCommand(workspace: SheetsWorkspace, rawComman
   const parsed = commandSchema.safeParse(rawCommand);
   if (!parsed.success) throw new AppError("Invalid spreadsheet command.", 400, parsed.error.issues.map(issue => ({ code: "invalid_input", message: `${issue.path.join(".")}: ${issue.message}` })));
   const command = parsed.data as SheetsCommand;
+  if (workspace.mode === "public" && command.action === "generate" && command.mode !== "demo") throw new AppError(PUBLIC_AI_DISABLED_MESSAGE, 403);
   if (recoverInterrupted(workspace)) await dependencies.checkpoint?.(workspace);
   if (command.action === "status") return { dashboard: sheetsDashboard(workspace) };
   if (command.action === "reset") {

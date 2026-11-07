@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getMetrics, getQueue, validateDraft } from "./domain";
 import { draftSourceFingerprint } from "./evidence";
 import { applicationWordCount, validateApplication } from "./programs";
+import { PUBLIC_AI_DISABLED_MESSAGE } from "./public-report-policy";
 import type { AgentRun, DemoState, Draft, RunEvent, ValidationIssue } from "./types";
 
 export type DraftRequest = { kind: Draft["kind"]; queueItemId?: string; grantId?: string; mode: "live" | "demo" };
@@ -127,6 +128,9 @@ function providerFailure(error: unknown): { message: string; code: string } {
 }
 
 export async function prepareDraft(state: DemoState, request: DraftRequest, dependencies: DraftDependencies = {}): Promise<{ draft: Draft; run: AgentRun }> {
+  // Defense in depth for public data passed directly to the shared drafter.
+  // This is intentionally not an environment flag; the legacy demo is unchanged.
+  if (state.reportScope === "donations" && request.mode !== "demo") throw new Error(PUBLIC_AI_DISABLED_MESSAGE);
   const started = Date.now();
   const draftInstructions = state.reportScope === "donations"
     ? `${instructions}\nThis workspace contains donation records only. No program activities, services, beneficiaries, outcomes or organizational mission were supplied. Omit all such claims and metrics. Describe only the imported giving and reviewed donor identities.`

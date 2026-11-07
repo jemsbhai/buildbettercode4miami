@@ -36,7 +36,6 @@ class Document {
     for (const match of html.matchAll(/<([a-z][a-z0-9]*)\b([^>]*\bid="([^"]+)"[^>]*)>/gu)) {
       const element = this.createElement(match[1]); element.id = match[3]; element.hidden = /\bhidden\b/u.test(match[2]);
     }
-    this.getElementById("mode").value = "demo";
     this.getElementById("amount-unit").value = "cents";
   }
   createElement(tag: string) { const element = new Element(tag, this); this.elements.push(element); return element; }
@@ -167,6 +166,11 @@ test("public sidebar, native adapter and real route complete date-mapped donatio
   assert.equal(app.workspace.state.donors.filter(donor => !donor.mergedInto).length, 2);
   await app.click("generate");
   assert.equal(app.workspace.state.drafts.length, 1, app.element("error").textContent);
+  assert.equal(app.document.ids.has("mode"), false, "public UI offers only standard reports");
+  assert.equal(app.document.ids.has("ai-consent"), false);
+  const generation = app.calls.find(call => call.action === "generate")!;
+  assert.equal(generation.mode, "demo");
+  assert.equal(Object.hasOwn(generation, "aiConsent"), false);
   assert.deepEqual(app.workspace.state.drafts[0].claims.map(claim => claim.metricId).sort(), ["donors", "giving"]);
   assert.equal(app.element("write-report").disabled, true);
   const givingField = () => app.element("claims").children.find(group => group.textContent.includes("$175.00"))!.children[0].children[0];

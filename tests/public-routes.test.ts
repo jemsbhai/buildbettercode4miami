@@ -4,6 +4,7 @@ import { handlePublicCommand, type PublicCommandDependencies } from "../src/lib/
 import { json, publicError, readJson, requireSameOrigin } from "../src/lib/public/http";
 import { AppError } from "../src/lib/service";
 import { prepareDraft } from "../src/lib/agent";
+import { GET as publicHealth } from "../src/app/api/public/health/route";
 import type { GoogleIdentity } from "../src/lib/public/auth";
 import type { WorkspaceCheckpoint } from "../src/lib/public/storage";
 import type { SheetsMapping, SheetsSelection, SheetsWorkspace } from "../src/lib/sheets-types";
@@ -109,20 +110,40 @@ test("same workbook ID isolates records by verified subject and deletion cannot 
   assert.equal((await h.command({ action: "status" }, "user-a")).body.dashboard.giftCount, 1);
 });
 
-test("live consent and generation validation precede billing, while completed retries reuse one reservation", async () => {
+test("forged public live requests never touch quotas, workspaces or providers, regardless of key and consent", async () => {
   const h = harness(); await h.importRows();
   const input = { action: "generate", selection: h.source, mode: "live", requestId: "live-1", aiConsent: true };
-  assert.equal((await h.command({ ...input, aiConsent: false })).status, 400);
-  assert.equal((await h.command({ ...input, aiConsent: "true" })).status, 400);
+  const prior = process.env.OPENAI_API_KEY; process.env.OPENAI_API_KEY = "configured-key-must-not-enable-public-ai";
+  const usageBefore = structuredClone(h.usage); const readsBefore = h.reads;
+  const stateBefore = structuredClone(h.saved.get(`user-a|${workbookId}`)!.state);
+  try {
+    for (const override of [{}, { aiConsent: false }, { aiConsent: "true" }, { mode: "LIVE" }, { mode: "provider" }]) {
+      const response = await h.command({ ...input, ...override });
+      assert.equal(response.status, 403); assert.match(response.body.error, /AI generation is disabled/u);
+    }
+    assert.deepEqual(h.usage, usageBefore);
+    assert.equal(h.reads, readsBefore); assert.equal(h.modelCalls, 0);
+    assert.deepEqual(h.saved.get(`user-a|${workbookId}`)!.state, stateBefore);
+    const status = await h.command({ action: "status" });
+    assert.equal(status.status, 200); assert.equal(status.body.dashboard.liveAvailable, false);
+    const health = await (await publicHealth()).json();
+    assert.deepEqual(health.capabilities, { standardReports: true, liveAi: false });
+  } finally { if (prior === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = prior; }
+});
+
+test("standard report retries preserve one deterministic draft and never use generation quota or provider", async () => {
+  const h = harness(); await h.importRows();
+  const input = { action: "generate", selection: h.source, mode: "demo", requestId: "standard-1" };
   assert.equal((await h.command({ ...input, requestId: "invalid key!" })).status, 400);
   assert.equal(h.usage.filter(item => item.kind === "generation").length, 0);
   const first = await h.command(input); assert.equal(first.status, 200);
   const retry = await h.command(input); assert.equal(retry.status, 200); assert.equal(retry.body.replayed, true);
   assert.equal(retry.body.draft.id, first.body.draft.id);
-  assert.equal(h.modelCalls, 1); assert.equal(h.usage.filter(item => item.kind === "generation").length, 1);
+  assert.equal(first.body.draft.mode, "demo"); assert.equal(first.body.draft.claims.find((claim: { metricId: string }) => claim.metricId === "giving").value, 20.12);
+  assert.equal(h.modelCalls, 0); assert.equal(h.usage.filter(item => item.kind === "generation").length, 0);
   h.source.values[1][3] = "21.12";
   assert.equal((await h.command({ ...input, requestId: "stale-source" })).status, 409);
-  assert.equal(h.modelCalls, 1); assert.equal(h.usage.filter(item => item.kind === "generation").length, 1);
+  assert.equal(h.modelCalls, 0); assert.equal(h.usage.filter(item => item.kind === "generation").length, 0);
 });
 
 test("deleted workspaces are fenced immediately before external export mutation", async () => {
@@ -137,14 +158,14 @@ test("deleted workspaces are fenced immediately before external export mutation"
   assert.equal(result.status, 409); assert.equal(h.writes, 0); assert.equal(h.saved.size, 0);
 });
 
-test("failed live attempts retain their reservation and same-key retries cannot spend again", async () => {
+test("failed standard attempts retain their reservation and retries cannot invoke a provider", async () => {
   const h = harness(); await h.importRows();
   h.dependencies.sheets = { prepareDraft: async () => { throw new Error("private provider exception"); } };
-  const input = { action: "generate", selection: h.source, mode: "live", requestId: "failed-live", aiConsent: true };
+  const input = { action: "generate", selection: h.source, mode: "demo", requestId: "failed-standard" };
   const first = await h.command(input); assert.equal(first.status, 502);
   assert(!JSON.stringify(first.body).includes("private provider exception"));
   const retry = await h.command(input); assert.equal(retry.status, 409);
-  assert.equal(h.usage.filter(item => item.kind === "generation").length, 1);
+  assert.equal(h.usage.filter(item => item.kind === "generation").length, 0); assert.equal(h.modelCalls, 0);
   assert.equal(h.saved.get(`user-a|${workbookId}`)!.state.generationRequests[0].status, "failed");
 });
 
@@ -156,24 +177,25 @@ test("a running report cannot resurrect a concurrently deleted workspace or retu
     await h.store.deleteWorkbook({ sub: "user-a", email: "user-a@example.test" }, workbookId);
     return prepared;
   } };
-  const result = await h.command({ action: "generate", selection: h.source, mode: "live", requestId: "deleted-live", aiConsent: true });
+  const result = await h.command({ action: "generate", selection: h.source, mode: "demo", requestId: "deleted-standard" });
   assert.equal(result.status, 503); assert.equal(result.body.draft, undefined);
-  assert.equal(h.saved.size, 0); assert.equal(h.modelCalls, 1);
-  assert.equal(h.usage.filter(item => item.kind === "generation").length, 1);
+  assert.equal(h.saved.size, 0); assert.equal(h.modelCalls, 0);
+  assert.equal(h.usage.filter(item => item.kind === "generation").length, 0);
 });
 
-test("public workspace history is bounded while the daily AI budget remains in persistent storage", async () => {
+test("public workspace history remains bounded and historical live runs cannot re-enable paid reports", async () => {
   const h = harness(); await h.importRows();
   const entry = h.saved.get(`user-a|${workbookId}`)!;
   entry.state.generationRequests = Array.from({ length: 12 }, (_, index) => ({ requestId: `old-${index}`, mode: "live" as const, fingerprint: "old", status: "failed" as const, startedAt: "2026-01-01T00:00:00.000Z" }));
-  const generated = await h.command({ action: "generate", selection: h.source, mode: "live", requestId: "new-day", aiConsent: true });
-  assert.equal(generated.status, 200); assert.equal(h.modelCalls, 1);
+  const generated = await h.command({ action: "generate", selection: h.source, mode: "demo", requestId: "standard-report" });
+  assert.equal(generated.status, 200); assert.equal(h.modelCalls, 0);
+  assert.equal((await h.command({ action: "generate", selection: h.source, mode: "live", requestId: "old-1", aiConsent: true })).status, 403);
   const current = h.saved.get(`user-a|${workbookId}`)!;
   current.state.generationRequests.push(...Array.from({ length: 37 }, (_, index) => ({ requestId: `history-${index}`, mode: "demo" as const, fingerprint: "old", status: "failed" as const, startedAt: "2026-01-01T00:00:00.000Z" })));
   assert.equal(current.state.generationRequests.length, 50);
   const bounded = await h.command({ action: "generate", selection: h.source, mode: "demo", requestId: "over-cap" });
-  assert.equal(bounded.status, 429); assert.equal(h.modelCalls, 1);
-  const replay = await h.command({ action: "generate", selection: h.source, mode: "live", requestId: "new-day", aiConsent: true });
+  assert.equal(bounded.status, 429); assert.equal(h.modelCalls, 0);
+  const replay = await h.command({ action: "generate", selection: h.source, mode: "demo", requestId: "standard-report" });
   assert.equal(replay.status, 200); assert.equal(replay.body.replayed, true);
 });
 

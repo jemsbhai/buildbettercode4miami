@@ -5,6 +5,7 @@ import { getPublicStore, type PostgresWorkspaceStore } from "./storage";
 import { json, publicError, readJson } from "./http";
 import { createPublicSheetsWorkspace, executeSheetsCommand, type SheetsDependencies } from "../sheets";
 import { AppError } from "../service";
+import { PUBLIC_AI_DISABLED_MESSAGE } from "../public-report-policy";
 
 const workbookSchema = z.string().regex(/^[A-Za-z0-9_-]{10,200}$/u);
 const locatorSchema = z.object({ workbookId: workbookSchema, sheetId: z.number().int().nonnegative(), a1: z.string().regex(/^[A-Z]+[1-9]\d*:[A-Z]+[1-9]\d*$/u).max(40) });
@@ -25,9 +26,12 @@ export async function handlePublicCommand(request: Request, dependencies: Public
     // Cookies and caller-supplied account/organization metadata never authorize this route.
     if (request.headers.has("origin")) throw new AppError("Open Tidepath from the Google Sheets Extensions menu.", 403);
     const identity = await (dependencies.authenticate ?? authenticateAddon)(request.headers);
+    const body = await readJson(request);
+    // Reject paid/unknown generation modes before any store, quota or provider work.
+    // Old clients and explicit consent cannot opt the public product back into AI.
+    if (body.action === "generate" && body.mode !== "demo") throw new AppError(PUBLIC_AI_DISABLED_MESSAGE, 403);
     const store = dependencies.store ?? getPublicStore();
     await store.consumeUsage(identity, "command");
-    const body = await readJson(request);
     const workbookId = workbookSchema.parse(body.workbookId);
     const gateway = (dependencies.gateway ?? (token => new GoogleWorkbookGateway(token)))(request.headers.get("x-tidepath-google-access-token")!);
     await gateway.assertWorkbookAccess(workbookId);
@@ -41,7 +45,6 @@ export async function handlePublicCommand(request: Request, dependencies: Public
     const { workbookId: _workbookId, ...input } = body;
     if (input.action === "generate") {
       if (input.aiConsent !== undefined && typeof input.aiConsent !== "boolean") throw new AppError("AI consent must be an explicit yes or no.");
-      if (input.mode === "live" && input.aiConsent !== true) throw new AppError("Review and accept the AI data disclosure before generating a report.");
       delete input.aiConsent;
     }
     const result = await store.withWorkspace(identity, workbookId, () => createPublicSheetsWorkspace(workbookId), async (workspace, checkpoint) => {
@@ -55,9 +58,8 @@ export async function handlePublicCommand(request: Request, dependencies: Public
       }
       const engineDependencies: SheetsDependencies = { ...dependencies.sheets, checkpoint,
         beforeGeneration: async (current, command) => {
-          // A deleted/replaced lease fails before spending AI budget or sending model data.
+          // A deleted/replaced lease fails before starting a standard report.
           await checkpoint(current);
-          if (command.mode === "live") await store.consumeUsage(identity, "generation");
           await dependencies.sheets?.beforeGeneration?.(current, command);
         } };
       if (input.action === "write") {

@@ -62,9 +62,8 @@
     <section id="report-panel" class="card" aria-labelledby="report-heading" hidden>
       <div class="card-title"><span class="step">3</span><h2 id="report-heading">Review your report</h2></div>
       <p id="period-label" class="hint">Donation figures use your imported records and selected dates. Program metrics are omitted because no program dataset is supplied.</p>
-      <label style="margin-top:10px">Drafting mode<select id="mode"><option value="demo">Standard report · no AI</option><option id="live-option" value="live">AI-assisted narrative</option></select></label>
-      <div id="ai-disclosure" class="notice" hidden><label><input id="ai-consent" type="checkbox" style="width:auto;min-width:0;vertical-align:middle"> I agree to send this report’s evidence to OpenAI for drafting.</label><p class="hint">Reporting dates, donation totals and donor counts are sent to OpenAI to draft this report. Donor contact details and raw rows are not sent. If a draft needs repair, its text and validation messages are sent too. Review the wording before approval.</p></div>
-      <button id="generate" style="margin-top:9px">Generate report</button>
+      <p class="hint" style="margin-top:10px">Standard reports use your verified donation totals and a fixed template. You can edit the wording before approval.</p>
+      <button id="generate" style="margin-top:9px">Create standard report</button>
       <button id="new-request" class="link-button" style="margin-top:7px" hidden>Start a different request</button>
       <p id="generation-hint" class="hint"></p>
       <div id="editor" style="margin-top:14px" hidden>
@@ -107,7 +106,7 @@
       { key: 'date', label: 'Date', aliases: ['date','giftdate','donationdate','transactiondate'] },
       { key: 'channel', label: 'Channel', aliases: ['channel','giftchannel','source','paymentchannel'], optional: true }
     ];
-    var state = { configured: false, context: null, busy: false, selection: null, summary: null, dashboard: null, preview: null, editor: null, requestId: null, generationMode: null, selectionChanged: false, importResult: null };
+    var state = { configured: false, context: null, busy: false, selection: null, summary: null, dashboard: null, preview: null, editor: null, requestId: null, selectionChanged: false, importResult: null };
     var el = function (id) { return document.getElementById(id); };
     function node(tag, text, className) { var item = document.createElement(tag); if (text !== undefined) item.textContent = String(text); if (className) item.className = className; return item; }
     function clear(item) { item.replaceChildren(); }
@@ -171,7 +170,7 @@
     }
     function normalizeHeader(value) { return String(value == null ? '' : value).toLowerCase().replace(/[^a-z0-9]/gu, ''); }
     function renderSelection(result) {
-      state.selection = result.selection; state.summary = result.summary; state.preview = null; state.selectionChanged = true; state.requestId = null; state.importResult = null; el('ai-consent').checked = false;
+      state.selection = result.selection; state.summary = result.summary; state.preview = null; state.selectionChanged = true; state.requestId = null; state.importResult = null;
       el('selection-panel').hidden = false;
       sourceBlock(el('selection-source'), state.summary);
       var headers = state.selection.values[0]; clear(el('mapping'));
@@ -221,8 +220,6 @@
       if (!dashboard) { updateControls(); return; }
       el('period-label').textContent = 'Reporting period: ' + dashboard.period.start + ' to ' + dashboard.period.end + '. Donation evidence only; no program dataset was supplied.';
       if (!el('period-start').value && dashboard.selection) { el('period-start').value = dashboard.period.start; el('period-end').value = dashboard.period.end; }
-      el('live-option').disabled = !dashboard.liveAvailable;
-      if (!dashboard.liveAvailable && el('mode').value === 'live') el('mode').value = 'demo';
       renderMetrics(el('current-metrics'), dashboard.metrics);
       el('import-result').textContent = state.importResult ? state.importResult.inserted + ' added · ' + (state.importResult.updated || 0) + ' corrected · ' + (state.importResult.removed || 0) + ' removed · ' + state.importResult.skipped + ' unchanged.' : dashboard.giftCount + ' gift records in this workbook’s workspace.';
       clear(el('candidates'));
@@ -248,7 +245,7 @@
       el('draft-title').textContent = draft.title;
       el('draft-status').textContent = state.editor.dirty ? 'Unsaved edits' : draft.status === 'approved' ? 'Approved' : 'Needs review';
       el('draft-status').className = 'badge' + (state.editor.dirty || draft.status !== 'approved' ? ' warn' : '');
-      el('draft-meta').textContent = 'Draft revision ' + state.editor.revision + ' · ' + (draft.mode === 'live' ? 'Live OpenAI draft' : 'Standard report');
+      el('draft-meta').textContent = 'Draft revision ' + state.editor.revision + ' · ' + (draft.mode === 'live' ? 'Previously saved report from an earlier release' : 'Standard report');
       el('narrative').value = state.editor.narrative;
       clear(el('draft-issues'));
       var issues = draft.issues || []; el('draft-issues').hidden = !issues.length;
@@ -264,11 +261,9 @@
     function markDirty() { if (!state.editor) return; state.editor.dirty = true; state.requestId = null; el('write-result').hidden = true; el('draft-status').textContent = 'Unsaved edits'; el('draft-status').className = 'badge warn'; updateControls(); }
     function renderRun(draft) {
       var run = (state.dashboard.runs || []).find(function (item) { return item.id === draft.runId; }); el('run-panel').hidden = !run; clear(el('run-content')); if (!run) return;
-      el('run-content').append(node('small', run.model + ' · ' + (run.mode === 'live' ? 'Live execution' : 'No model request')));
-      var usage = run.inputTokens + ' input / ' + run.outputTokens + ' output tokens';
-      el('run-content').append(node('small', run.usageKnown === false ? 'Partial or unknown usage: ' + usage : 'Recorded usage: ' + usage));
+      el('run-content').append(node('small', run.mode === 'live' ? 'Historical run from an earlier release' : 'Standard report preparation'));
       var events = document.createElement('ol'); (run.events || []).forEach(function (event) { var item = document.createElement('li'); item.append(node('strong', event.action.replaceAll('_', ' ')), node('span', event.detail)); events.append(item); }); el('run-content').append(events);
-      el('run-content').append(node('small', draft.sourceIds.length + ' source references. This is the saved execution, not another model call.'));
+      el('run-content').append(node('small', draft.sourceIds.length + ' source references linked to this saved report.'));
     }
     function updateControls() {
       var busy = state.busy; var draft = currentDraft(); var dirty = Boolean(state.editor && state.editor.dirty); var hasImport = Boolean(state.dashboard && state.dashboard.selection && !state.selectionChanged);
@@ -277,11 +272,9 @@
       el('reconnect').disabled = busy;
       el('preview').disabled = busy || !state.configured || !state.selection;
       el('import').disabled = busy || !state.preview;
-      el('generate').disabled = busy || !hasImport || dirty || (el('mode').value === 'live' && !el('ai-consent').checked);
+      el('generate').disabled = busy || !hasImport || dirty;
       el('new-request').hidden = !state.requestId;
       el('new-request').disabled = busy;
-      el('mode').disabled = busy || dirty || Boolean(state.requestId);
-      if (state.dashboard) el('live-option').disabled = !state.dashboard.liveAvailable;
       el('save-draft').disabled = busy || !draft || !dirty;
       el('discard-edits').disabled = busy || !draft || !dirty;
       el('approve').disabled = busy || !draft || dirty || draft.status === 'approved';
@@ -290,10 +283,9 @@
       el('delete-data').disabled = busy || !state.configured;
       el('delete-confirm-button').disabled = busy || !state.configured;
       el('delete-cancel').disabled = busy;
-      el('ai-disclosure').hidden = el('mode').value !== 'live';
       el('editor-hint').textContent = dirty ? 'Save edits before approval. Your text stays here if a request fails.' : draft && draft.status === 'approved' ? 'Approval applies to this exact content and its source evidence.' : 'Check the narrative and every figure before approving.';
-      el('generation-hint').textContent = dirty ? 'Save or discard edits before generating another report.' : state.requestId ? 'A request may still be running. Retry checks the same saved request.' : el('mode').value === 'live' ? 'Reads evidence, then drafts. Up to one repair within a shared time limit.' : 'Creates a standard report from verified donation totals. No AI request is made.';
-      el('generate').textContent = state.requestId ? 'Retry saved request' : 'Generate report';
+      el('generation-hint').textContent = dirty ? 'Save or discard edits before creating another report.' : state.requestId ? 'A request may still be running. Retry checks the same saved request.' : 'Creates a standard report from verified donation totals. No AI service is used.';
+      el('generate').textContent = state.requestId ? 'Retry saved request' : 'Create standard report';
       var primaryId = !state.configured ? 'connect-workbook' : dirty ? 'save-draft' : state.preview ? 'import' : state.selectionChanged ? 'preview' : hasImport ? draft ? draft.status === 'approved' ? 'write-report' : 'approve' : 'generate' : state.selection ? 'preview' : 'read-selection';
       document.querySelectorAll('button').forEach(function (button) { button.classList.toggle('action', button.id === primaryId); });
     }
@@ -315,7 +307,6 @@
     el('reconnect').addEventListener('click', function () { act('Checking your account and spreadsheet…', connectStatus); });
     el('read-selection').addEventListener('click', function () { act('Reading the selected cells…', async function () { renderSelection(await rpc('tidepathReadSelection')); message('Check the column mapping, then preview.'); }); });
     ['amount-unit','period-start','period-end'].forEach(function (id) { el(id).addEventListener('change', invalidatePreview); });
-    el('ai-consent').addEventListener('change', updateControls);
     el('preview').addEventListener('click', function () { act('Checking rows without importing…', async function () {
       var result = await command(Object.assign({ action: 'preview' }, importOptions())); state.preview = result.preview;
       el('preview-panel').hidden = false; el('preview-count').textContent = state.preview.inserted + ' added · ' + (state.preview.updated || 0) + ' corrected · ' + (state.preview.removed || 0) + ' removed · ' + state.preview.skipped + ' unchanged. ' + state.preview.rowCount + ' rows reviewed.';
@@ -325,12 +316,11 @@
       message('Preview ready. Nothing has been imported yet.');
     }); });
     el('import').addEventListener('click', function () { act('Importing the reviewed selection…', async function () { await command(Object.assign({ action: 'import', previewHash: state.preview.previewHash }, importOptions()), { imported: true }); message('Rows imported. Review any identity matches next.'); }); });
-    el('mode').addEventListener('change', updateControls);
-    el('new-request').addEventListener('click', function () { state.requestId = null; state.generationMode = null; message('Choose the drafting mode. Any active request must finish before another can start.'); updateControls(); });
+    el('new-request').addEventListener('click', function () { state.requestId = null; message('Ready for a new standard report. Any active request must finish before another can start.'); updateControls(); });
     el('generate').addEventListener('click', function () { act('Reading evidence and drafting the report…', async function () {
-      if (!state.requestId) { state.requestId = requestId(); state.generationMode = el('mode').value; }
-      try { await command({ action: 'generate', mode: state.generationMode, requestId: state.requestId, aiConsent: state.generationMode === 'live' && el('ai-consent').checked }, { replaceEditor: true }); state.requestId = null; message('Draft ready. Review its narrative and verified figures.'); }
-      catch (error) { if (/new request key|shared time limit|The (?:model|report) could not finish|model access|quota|API key|twelve live-attempt limit|generation reservation expired|Records changed during drafting/iu.test(error.message)) state.requestId = null; throw error; }
+      if (!state.requestId) state.requestId = requestId();
+      try { await command({ action: 'generate', mode: 'demo', requestId: state.requestId }, { replaceEditor: true }); state.requestId = null; message('Standard report ready. Review its narrative and verified figures.'); }
+      catch (error) { if (/new request key|The report could not finish|quota|generation reservation expired|Records changed during drafting/iu.test(error.message)) state.requestId = null; throw error; }
     }); });
     el('narrative').addEventListener('input', function () { if (state.editor) { state.editor.narrative = el('narrative').value; markDirty(); } });
     el('save-draft').addEventListener('click', function () { act('Saving edits for review…', async function () {

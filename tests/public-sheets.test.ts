@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { prepareDraft } from "../src/lib/agent";
 import { AppError } from "../src/lib/service";
-import { createPublicSheetsWorkspace, executeSheetsCommand, sheetsDashboard } from "../src/lib/sheets";
+import { createPublicSheetsWorkspace, createSheetsWorkspace, executeSheetsCommand, sheetsDashboard } from "../src/lib/sheets";
 import type { SheetsMapping, SheetsSelection, SheetsWorkspace } from "../src/lib/sheets-types";
 
 const period = { start: "2026-01-01", end: "2026-12-31" };
@@ -126,20 +126,33 @@ test("public validation rejects refunds, currency mismatch, duplicate IDs and un
   await assert.rejects(executeSheetsCommand(workspace, { action: "preview", selection: selection(), mapping, amountUnit: "dollars", period, currency: "EUR" }), blocked(400));
 });
 
-test("public AI receives only donation aggregates, never contact data or invented program context", async () => {
-  const { workspace } = await imported();
-  const prepared = await prepareDraft(workspace.state, { kind: "report", mode: "live" }, {
-    runModel: async call => {
-      const evidence = call.readEvidence!();
-      assert.deepEqual(evidence.metrics.map(metric => metric.id), ["donors", "giving"]);
-      assert(!JSON.stringify(evidence).includes("alex@example.test"));
-      assert(!JSON.stringify(evidence).includes("Alex Lee"));
-      assert.match(call.instructions, /donation records only/);
-      return { output: { narrative: "The reviewed records summarize giving during the reporting period.", claims: evidence.metrics.map(metric => ({ metricId: metric.id, value: metric.value })) }, usage: { inputTokens: 100, outputTokens: 20, known: true } };
-    },
-  });
-  assert.equal(prepared.draft.title, "Donation reconciliation report");
-  assert.equal(prepared.draft.claims.length, 2);
+test("public live generation is blocked at engine and provider boundaries even with an API key", async () => {
+  const { workspace, source } = await imported();
+  const before = structuredClone(workspace);
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = "test-key-that-must-never-be-used";
+  let checkpoints = 0, quotaHooks = 0, preparations = 0, providerCalls = 0;
+  try {
+    assert.equal(sheetsDashboard(workspace).liveAvailable, false);
+    assert.equal(sheetsDashboard(createSheetsWorkspace("legacy_demo_workbook")).liveAvailable, true, "legacy demo capability remains unchanged");
+    await assert.rejects(executeSheetsCommand(workspace, { action: "generate", selection: source, mode: "live", requestId: "forged-live" }, {
+      checkpoint: () => { checkpoints++; }, beforeGeneration: () => { quotaHooks++; },
+      prepareDraft: async () => { preparations++; throw new Error("must not prepare paid work"); },
+    }), blocked(403));
+    await assert.rejects(prepareDraft(workspace.state, { kind: "report", mode: "live" }, {
+      runModel: async () => { providerCalls++; throw new Error("must not contact a provider"); },
+    }), /AI generation is disabled/u);
+    assert.deepEqual(workspace, before);
+    assert.deepEqual({ checkpoints, quotaHooks, preparations, providerCalls }, { checkpoints: 0, quotaHooks: 0, preparations: 0, providerCalls: 0 });
+    const standard = await prepareDraft(workspace.state, { kind: "report", mode: "demo" }, {
+      runModel: async () => { providerCalls++; throw new Error("standard reports must remain local"); },
+    });
+    assert.equal(standard.draft.title, "Donation reconciliation report");
+    assert.equal(standard.draft.claims.length, 2);
+    assert.equal(standard.run.model, "deterministic-template");
+    assert.equal(standard.run.inputTokens + standard.run.outputTokens, 0);
+    assert.equal(providerCalls, 0);
+  } finally { if (previousKey === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = previousKey; }
 });
 
 test("large matching groups have bounded review IDs and still need explicit approval", async () => {

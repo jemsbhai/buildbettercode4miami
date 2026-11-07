@@ -1,6 +1,6 @@
 # Tidepath OAuth verification video handoff
 
-Prepared November 7, 2026. This is a recording plan, not a completed video or submitted verification request. The native HTML is frozen; this document changes no application code.
+Prepared November 7, 2026. This is a recording plan, not a completed video or submitted verification request. Record the replacement standard-report-only release after the final backend deployment and immutable native version are verified. Earlier version-1 AI demonstrations are historical and do not prove this release.
 
 ## Requirement for the current scope set
 
@@ -20,7 +20,7 @@ Tidepath displays an HTML sidebar inside Google Sheets so the user can map their
 
 Tidepath uses Apps Script `UrlFetchApp` to send user-initiated commands to its fixed HTTPS endpoint, `https://tidepath-sheets.vercel.app/api/public/command`. The hosted service verifies the user's Google identity and edit access to the chosen workbook, rereads the selected source range, stores that user's imported workspace, checks report figures and approvals, and writes only an approved report to a new tab. The same endpoint supports data deletion. This scope is required for Apps Script to contact that service; current-document and per-file scopes do not permit the outbound request. [Google UrlFetchApp reference](https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app).
 
-If reviewers ask about optional AI, explain the separate explicit-consent path: the backend sends reporting dates, aggregate donation totals and donor counts to OpenAI, with at most a rejected draft and validation messages for repair. It excludes donor contacts and raw rows from the model prompt. Standard reports do not call an AI provider.
+The submitted public release provides standard reports from fixed templates only. It does not offer AI drafting, call an AI provider or send user data to one. The server rejects live-generation requests independently of the sidebar. Record this release, not the historical version-1 AI workflow.
 
 ## Recording setup
 
@@ -38,12 +38,11 @@ The duration is an operator planning suggestion, not a Google requirement. Do no
 
 | Segment | Actual screen actions | Suggested narration or caption |
 | --- | --- | --- |
-| Purpose | Open the deployed homepage, privacy, terms and support pages. | “Tidepath is a free donation reconciliation and reporting add-on operated by Muntaser Syed. These pages explain access, retention, optional AI and deletion.” |
+| Purpose | Open the deployed homepage, privacy, terms and support pages. | “Tidepath is a free donation reconciliation and reporting add-on operated by Muntaser Syed. These pages explain access, standard report preparation, retention and deletion.” |
 | Native consent | From the fictional Sheet, open Extensions → Tidepath → Open Tidepath. Show Google's complete authorization screens in English, app name, requested permissions and native client ID. | “This is the Apps Script client for Tidepath. The current-document scope reads the selected table; per-file permission is granted separately through Picker.” |
 | UI permission | Show the sidebar, open Picker and select the currently open workbook. Keep the identity displayed by the actual app visible. | “The container UI permission displays this sidebar and the file-selection dialog. The user selects the workbook to which Tidepath receives access.” |
 | Hosted processing | Select the complete table, map columns, choose matching dates, preview and import. Show a contact-evidence merge decision. | “These buttons send commands from Apps Script to Tidepath's fixed HTTPS backend using the external-request permission. The service checks identity and file edit access, rereads the chosen range, and stores a private workspace.” |
 | Review and output | Generate a standard report, show verified figures, save an edit, approve the exact revision and write to a new tab. Show original donation cells and the new report. | “A standard report uses no AI. The user reviews and approves the exact report before the service writes a new tab. Original source cells stay in place.” |
-| Optional AI | If included in the submitted release, show the disclosure, explicitly choose AI, and demonstrate a successful real result. | “AI drafting is optional. Only reporting dates and aggregate metrics are sent; donor contact details and raw rows are excluded.” |
 | Web OAuth client | Open the website account flow and show its Google sign-in/account selection, consent if presented, account page and sign-out. | “The website uses a separate OAuth client in the same project, requesting identity access for account management. Signing in here does not switch the Google account editing the Sheet.” |
 | Deletion | Delete the fictional workbook's saved Tidepath data or the test account data through the real controls; show source/report tabs retained. | “Deletion removes saved Tidepath data. It does not remove the user's spreadsheet or exported report tabs. The published policy explains retained usage counters and provider backups.” |
 
