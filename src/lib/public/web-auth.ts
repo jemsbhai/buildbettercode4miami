@@ -59,6 +59,18 @@ export async function finishGoogleSignIn(request: Request, dependencies: WebAuth
   // Identity-only tokens are discarded; no offline Google access is requested.
   return { token, identity };
 }
+export async function googleSignInCallback(request: Request, dependencies: WebAuthDependencies = {}) {
+  const headers = new Headers({ "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" });
+  headers.append("Set-Cookie", cookie(FLOW_COOKIE, "", 0));
+  try {
+    const { token } = await finishGoogleSignIn(request, dependencies);
+    headers.append("Set-Cookie", cookie(SESSION_COOKIE, token, 8 * 3600));
+    // An explicit harmless query prevents hosting redirects from forwarding OAuth parameters.
+    // The account page consumes this marker and clears its query before requesting account data.
+    headers.set("Location", `${publicOrigin()}/account?signin=complete`);
+  } catch { headers.set("Location", `${publicOrigin()}/account?error=signin`); }
+  return new Response(null, { status: 303, headers });
+}
 export async function webIdentity(request: Request, dependencies: WebAuthDependencies = {}) {
   const token = cookieValue(request, SESSION_COOKIE);
   if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new AppError("Sign in to your Tidepath account first.", 401);

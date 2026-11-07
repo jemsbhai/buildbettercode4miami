@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { consumeAccountReturnLocation } from "@/lib/public/account-return";
 type Account = { identity: { email: string }; retentionDays: number; workspace: string; sharing: string };
 export function PublicAccount() {
   const [account, setAccount] = useState<Account | null>(null);
@@ -9,7 +10,7 @@ export function PublicAccount() {
   const [confirmation, setConfirmation] = useState("");
   useEffect(() => {
     const controller = new AbortController();
-    const reason = new URLSearchParams(location.search).get("error");
+    const reason = consumeAccountReturnLocation(window.location, window.history);
     if (reason === "setup") setMessage("Google sign-in is awaiting publisher configuration. Please check back soon.");
     if (reason === "signin") setMessage("Sign-in did not finish. Please choose your Google account and try again.");
     fetch("/api/public/account", { signal: controller.signal }).then(async response => {

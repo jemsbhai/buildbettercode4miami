@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createHash } from "node:crypto";
 import { createLocalJWKSet, EncryptJWT, exportJWK, generateKeyPair, jwtDecrypt, SignJWT } from "jose";
-import { beginGoogleSignIn, cookie, cookieValue, endSession, finishGoogleSignIn, FLOW_COOKIE, SESSION_COOKIE, webIdentity, type WebAuthDependencies } from "../src/lib/public/web-auth";
+import { beginGoogleSignIn, cookie, cookieValue, endSession, finishGoogleSignIn, googleSignInCallback, FLOW_COOKIE, SESSION_COOKIE, webIdentity, type WebAuthDependencies } from "../src/lib/public/web-auth";
+import { consumeAccountReturnLocation } from "../src/lib/public/account-return";
+import nextConfig from "../next.config";
 import { publicOrigin } from "../src/lib/public/http";
 import { verifyGoogleIdentity, type GoogleIdentity } from "../src/lib/public/auth";
 import { AppError } from "../src/lib/service";
@@ -116,3 +118,66 @@ test("misconfigured origins and unavailable Google responses fail without exposi
   await assert.rejects(finishGoogleSignIn(callback(flow, state), { fetch: async () => { throw new Error("test-only-client-secret"); } }), (error: unknown) => error instanceof AppError && error.status === 503 && !error.message.includes("secret"));
   await assert.rejects(finishGoogleSignIn(callback(flow, state), { fetch: async () => new Response("broken", { status: 200 }) }), /verified identity/u);
 }));
+
+test("successful OAuth callback replaces provider query with a harmless explicit return marker", () => configured(async () => {
+  const { url, flow } = await beginGoogleSignIn();
+  const saved = sessions();
+  let exchanges = 0;
+  const response = await googleSignInCallback(callback(flow, new URL(url).searchParams.get("state")!, "code=fake-return-code&iss=https%3A%2F%2Faccounts.google.com&scope=openid&authuser=0&prompt=none"), {
+    fetch: async () => { exchanges++; return Response.json({ id_token: "fake-identity-for-injected-verifier" }); },
+    verify: async () => principal, store: saved.store,
+  });
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get("location"), `${origin}/account?signin=complete`);
+  assert.equal(response.headers.get("referrer-policy"), "no-referrer");
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(await response.text(), "");
+  const cookies = response.headers.getSetCookie();
+  assert(cookies.some(value => value === cookie(FLOW_COOKIE, "", 0)));
+  const session = cookies.find(value => value.startsWith(`${SESSION_COOKIE}=`))!;
+  const token = session.slice(SESSION_COOKIE.length + 1).split(";")[0];
+  assert.match(token, /^[A-Za-z0-9_-]{43}$/u);
+  assert(saved.values.has(hash(token)));
+  assert.equal(exchanges, 1);
+}));
+
+test("failed OAuth callback clears its flow and never forwards callback parameters or creates a session", () => configured(async () => {
+  const saved = sessions(); let exchanges = 0;
+  const response = await googleSignInCallback(new Request(`${origin}/api/auth/google/callback?code=fake-code&state=fake-state&scope=openid`), {
+    fetch: async () => { exchanges++; throw new Error("should not exchange"); }, store: saved.store,
+  });
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get("location"), `${origin}/account?error=signin`);
+  assert.deepEqual(response.headers.getSetCookie(), [cookie(FLOW_COOKIE, "", 0)]);
+  assert.equal(saved.values.size, 0); assert.equal(exchanges, 0);
+}));
+
+test("account return clears OAuth and marker queries without losing router history state", () => {
+  const routerState = { __NA: true, tree: "existing-router-state" };
+  const calls: unknown[][] = [];
+  const history = { state: routerState, replaceState: (...args: unknown[]) => { calls.push(args); } };
+  const reason = consumeAccountReturnLocation(new URL(`${origin}/account?signin=complete&code=fake-code&state=fake-state&iss=fake-issuer#fake-fragment`), history);
+  assert.equal(reason, undefined);
+  assert.deepEqual(calls, [[routerState, "", "/account"]]);
+  consumeAccountReturnLocation(new URL(`${origin}/account`), history);
+  assert.equal(calls.length, 1, "A clean account URL does not change history");
+});
+
+test("account return preserves only known sign-in feedback while removing every query value", () => {
+  for (const [query, expected] of [["error=signin&code=fake-code", "signin"], ["error=setup", "setup"], ["error=fake-private-error", undefined]] as const) {
+    let target: string | URL | null | undefined;
+    const result = consumeAccountReturnLocation(new URL(`${origin}/account?${query}`), { state: null, replaceState: (_data, _unused, url) => { target = url; } });
+    assert.equal(result, expected); assert.equal(target, "/account");
+  }
+});
+
+test("account and authentication routes override the default referrer policy", async () => {
+  const rules = await nextConfig.headers!();
+  const global = rules.find(rule => rule.source === "/:path*")!;
+  assert.equal(global.headers.find(header => header.key === "Referrer-Policy")?.value, "strict-origin-when-cross-origin");
+  for (const source of ["/account", "/api/auth/:path*"]) {
+    const rule = rules.find(rule => rule.source === source)!;
+    assert(rule && rules.indexOf(rule) > rules.indexOf(global), "Scoped policy must override the general policy");
+    assert.equal(rule.headers.find(header => header.key === "Referrer-Policy")?.value, "no-referrer");
+  }
+});
