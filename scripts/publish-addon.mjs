@@ -1,6 +1,5 @@
 /** Publisher-only release helper. Never enables account-wide Apps Script API access. */
 import { mkdir, readFile, writeFile, copyFile } from "node:fs/promises";
-import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,6 +11,7 @@ const args = new Set(process.argv.slice(2));
 const accepted = new Set(["--prepare", "--create", "--push", "--version"]);
 if ([...args].some(arg => !accepted.has(arg))) throw new Error("Use --prepare, --create, --push or --version. No credentials are accepted on the command line.");
 const title = "Tidepath for Google Sheets";
+const publisherEmail = "jemsbhai@gmail.com";
 const names = ["Code.gs", "Sidebar.html", "Picker.html", "appsscript.json"];
 const types = { ".gs": "SERVER_JS", ".html": "HTML", ".json": "JSON" };
 let binding;
@@ -25,7 +25,7 @@ async function publisherFile() {
   catch { throw new Error("Publisher config is missing. Save the restricted Picker key and Cloud project number in .data/public-addon-publisher.json; do not put them in Git or command arguments."); }
   if (!config.TIDEPATH_PICKER_API_KEY || config.TIDEPATH_CLOUD_PROJECT_NUMBER !== "397160375233"
     || config.TIDEPATH_BACKEND_URL !== "https://tidepath-sheets.vercel.app") throw new Error("Publisher config does not match the intended Cloud project and HTTPS origin.");
-  const content = `// Generated publisher setup. This file is kept in ignored local staging.\nfunction initializeTidepathPublisher_() {\n  if (ScriptApp.getScriptId() !== ${JSON.stringify(binding?.scriptId ?? "CREATE_PROJECT_FIRST")}) throw new Error('Wrong Apps Script project. Stop and use the isolated Tidepath public project.');\n  PropertiesService.getScriptProperties().setProperties(${JSON.stringify({ TIDEPATH_PICKER_API_KEY: config.TIDEPATH_PICKER_API_KEY, TIDEPATH_CLOUD_PROJECT_NUMBER: config.TIDEPATH_CLOUD_PROJECT_NUMBER })}, false);\n}\n`;
+  const content = `// Generated publisher setup. This file is kept in ignored local staging.\nfunction initializeTidepathPublisher_() {\n  if (ScriptApp.getScriptId() !== ${JSON.stringify(binding?.scriptId ?? "CREATE_PROJECT_FIRST")}) throw new Error('Wrong Apps Script project. Stop and use the isolated Tidepath public project.');\n  PropertiesService.getScriptProperties().setProperties(${JSON.stringify({ TIDEPATH_PICKER_API_KEY: config.TIDEPATH_PICKER_API_KEY, TIDEPATH_CLOUD_PROJECT_NUMBER: config.TIDEPATH_CLOUD_PROJECT_NUMBER })}, false);\n}\n\n// Editor-only setup diagnostic: logs the public audience, never the token or key.\nfunction tidepathPublisherSetup() {\n  if (Session.getEffectiveUser().getEmail() !== 'jemsbhai@gmail.com') throw new Error('Publisher setup is restricted to the configured account.');\n  initializeTidepathPublisher_();\n  var token = ScriptApp.getIdentityToken();\n  if (!token || token.split('.').length !== 3) throw new Error('Authorize this script before verifying its Google OAuth audience.');\n  var audience;\n  try { audience = JSON.parse(Utilities.newBlob(Utilities.base64DecodeWebSafe(token.split('.')[1])).getDataAsString('UTF-8')).aud; }\n  catch (_) { throw new Error('Google identity metadata could not be read. No credentials were logged.'); }\n  if (typeof audience !== 'string' || audience.length > 250 || !/^[A-Za-z0-9.-]+$/.test(audience) || !audience.endsWith('.apps.googleusercontent.com')) throw new Error('Google returned an unexpected audience format. No credentials were logged.');\n  console.log(audience);\n}\n`;
   await writeFile(join(stage, "Publisher.gs"), content, { mode: 0o600 });
 }
 
@@ -33,14 +33,22 @@ let accessToken;
 async function authorization() {
   if (accessToken) return accessToken;
   let credentials;
-  try { credentials = JSON.parse(await readFile(join(homedir(), ".clasprc.json"), "utf8")).tokens?.default; }
-  catch { throw new Error("Existing clasp authentication was not found. Sign in using clasp in a private terminal before publishing."); }
+  const authPath = process.env.TIDEPATH_PUBLISHER_AUTH_FILE || join(root, ".data", "public-addon-publisher-auth.json");
+  // The global clasp account may belong to the demo's installer. Never reuse it.
+  try { credentials = JSON.parse(await readFile(authPath, "utf8")).tokens?.default; }
+  catch { throw new Error("Isolated publisher authentication was not found. Authorize jemsbhai@gmail.com into .data/public-addon-publisher-auth.json, or use the publisher's Apps Script editor. Global/demo credentials are never used."); }
   if (!credentials?.refresh_token || !credentials.client_id || !credentials.client_secret) throw new Error("Existing clasp credentials cannot refresh. Sign in again in a private terminal.");
   const response = await fetch("https://oauth2.googleapis.com/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, redirect: "error", signal: AbortSignal.timeout(20_000),
     body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: credentials.refresh_token, client_id: credentials.client_id, client_secret: credentials.client_secret }) });
   if (!response.ok) throw new Error(`Clasp authorization could not be refreshed (HTTP ${response.status}). Sign in again privately; no credentials were changed.`);
   const data = await response.json();
   if (typeof data.access_token !== "string") throw new Error("Google did not return a valid publisher token.");
+  const accountResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+    headers: { Authorization: `Bearer ${data.access_token}` }, redirect: "error", signal: AbortSignal.timeout(15_000),
+  });
+  if (!accountResponse.ok) throw new Error("Google could not verify the publisher account. No Apps Script action was performed.");
+  const account = await accountResponse.json();
+  if (account.email !== publisherEmail || account.email_verified !== true) throw new Error("The authenticated account is not the verified Tidepath publisher. No Apps Script action was performed; use isolated credentials for jemsbhai@gmail.com.");
   accessToken = data.access_token;
   return accessToken;
 }
@@ -54,7 +62,7 @@ async function api(path, method = "GET", body) {
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     const reason = String(data.error?.message || "");
-    if (response.status === 403 && /Apps Script API|script.*API|has not.*enabled|disabled/i.test(reason)) {
+    if (response.status === 403 && /user has not enabled.*Apps Script API|Apps Script API.*disabled.*user/i.test(reason)) {
       throw new Error("Google blocked project management because Apps Script API access is disabled. This helper will not enable that account-wide setting. The account owner must approve enabling it at https://script.google.com/home/usersettings, or use the Apps Script editor to create and upload this isolated prepared project. Re-disable API access after the authorized upload if that is the owner's preference.");
     }
     throw new Error(`Google rejected the publisher action (HTTP ${response.status}, ${String(data.error?.status ?? "UNKNOWN").replace(/[^A-Z_]/g, "")}). Check publisher permissions in the Cloud/Apps Script console. No credential values are logged.`);

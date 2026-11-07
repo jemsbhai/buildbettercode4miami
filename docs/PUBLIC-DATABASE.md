@@ -1,0 +1,61 @@
+# Public database and identity operations
+
+Verified on 2026-11-07: migrations `001_public_addon.sql`, `002_web_sessions.sql` and `003_runtime_role.sql` were applied to the dedicated Tidepath Neon database. A separate `tidepath_public_app` login was provisioned. Its actual connection passed a smoke check for no superuser, role-administration or row-security-bypass privileges, private-workspace separation, and fail-closed row-level security. The nine-check real PostgreSQL test run passed, as did seven cryptographic identity / Google gateway tests. Hosted application and Google OAuth/Marketplace status are tracked separately in [PUBLIC-ADDON-RELEASE.md](PUBLIC-ADDON-RELEASE.md).
+
+Also verified against `https://tidepath-sheets.vercel.app` on 2026-11-07: eight hosted synthetic-session checks passed. A short-lived session inserted using the restricted database login authenticated through the deployed account endpoint; a forged cookie and cross-origin deletion were rejected; explicit same-origin deletion removed the synthetic account and its session, and replay returned 401. The local restricted database confirmed the hosted deletion. This verifies the hosted HTTP-to-database boundary. It **does not** verify Google's OAuth consent flow, Marketplace installation or a fresh user-owned spreadsheet. Only a unique synthetic account was created, and it was deleted during the check.
+
+## Runtime credentials and migrations
+
+The Neon integration's initial owner credential has `BYPASSRLS`; it must **not** be the deployed application credential. The application uses `tidepath_public_app` (`LOGIN`, `NOINHERIT`, `NOBYPASSRLS`, no database/role creation). Every short storage transaction explicitly assumes `tidepath_public_runtime`, a `NOLOGIN` role granted only the required Tidepath tables and schema usage. This role is subject to the workspace table's forced row-level policy.
+
+The provisioning workstation keeps owner credentials in ignored `.env.public.local` for migrations and the restricted connection in ignored `.env.public.runtime.local` for the application. Neither file is source-controlled. The production Vercel environment was configured with the restricted credential, including the provider-injected alternate URL/user/password variables. **Reconnecting or rotating the Neon integration can reintroduce owner credentials:** reapply the restricted runtime configuration to all production connection variants, redeploy, and rerun the restricted-login check. Never print environment files or database passwords in logs.
+
+Use Node.js 24, from the repository root:
+
+```sh
+node --env-file=.env.public.local --import tsx scripts/migrate-public.ts
+node --env-file=.env.public.runtime.local --import tsx scripts/check-public-runtime.ts
+node --env-file=.env.public.runtime.local --import tsx scripts/verify-public-session-hosted.ts
+```
+
+Migrations run in one transaction protected by a PostgreSQL advisory lock. They record applied filenames. Add a new numbered migration for subsequent changes; do not edit an applied migration. `scripts/provision-public-runtime.ts` is a one-time operator tool and refuses to replace an existing runtime login or credential file. Password rotation is a separate reviewed operational action: change the login password, update all production connection variants, redeploy, verify, and invalidate the old credential.
+
+## Identity, isolation, and lifecycle
+
+Google identity is verified using Google's signing keys, an explicit allowed client audience, issuer, expiration, issue time, and verified email; web sign-in also checks its nonce. Google `sub` is the account key. The add-on's short-lived Google access token must resolve to the same `sub` at Google's userinfo endpoint. Both tokens remain only in request memory. No Google refresh token is stored.
+
+Each account owns one private organization; membership is provisioned server-side. Organization identifiers never come from a request body or email/domain inference. Sharing the Google workbook does not share another person's Tidepath drafts. The backend additionally verifies the requester's current per-file Google Drive authorization and edit capability and reads the selected cells directly from Google. Possessing a workbook identifier is insufficient.
+
+Workspaces are keyed by `(organization_id, workbook_id)`, with explicit query predicates and a forced row-level policy. Web sessions store only random-token hashes and expire on the server. Account deletion removes memberships, workspaces and sessions. Workbook deletion removes only that account's Tidepath workspace. Original Sheets and exported tabs remain user-owned.
+
+Persisted donation workspaces expire after 30 days without a successful checkpoint. Reads reject expired content even before cleanup runs. The cleanup task removes expired workspaces, expired sessions and old usage counters; active leases are allowed to finish before scheduled deletion. Provider backup retention is separate from logical application deletion and must be disclosed according to the configured database plan; do not promise immediate removal from backups.
+
+## Retention configuration audit
+
+Read-only checks on 2026-11-07 verified the actual Vercel project configuration, beyond the local `vercel.json`: cron jobs were enabled (`disabledAt: null`) and `/api/public/retention` was registered with `15 5 * * *` on production deployment `dpl_66DJEeLgVZqXEiSofS9qvSLnmNRc`. This schedules a daily request at 05:15 UTC; Vercel's [cron documentation](https://vercel.com/docs/schedules/cron-jobs) specifies UTC. Production environment metadata confirmed that `CRON_SECRET` exists as a sensitive variable. Its value was not read or printed.
+
+Configuration is not proof of a completed scheduled cleanup. The available last-day runtime logs showed a 401 response at 21:38:51 UTC on the inspected production deployment and a 500 response at 21:37:41 UTC on an earlier deployment. No successful scheduled run was observed. The check did not call the authenticated cleanup route because its secret was not available locally. Verify a successful scheduled invocation and database expiry cleanup after the next scheduled run; the database tests already verify application expiry and cleanup behavior independently.
+
+**The actual Neon provider history/backup retention remains unverified.** The Vercel resource metadata identified the `tidepath-public` database (Neon project `royal-salad-75537562`) but did not expose its history setting. The resource-detail API returned 403, stating that only integrations can query resources. Opening the authorized Vercel-to-Neon SSO link reached a Neon email-verification page requiring the account to be linked with `VercelMarketplace`; no account was linked and no verification email was resent. No cloud settings were changed.
+
+After the owner completes that verification, inspect the project's **Settings → Postgres → History window** and record the displayed current value, or read the project's `history_retention_seconds` using an authorized Neon management API credential. [Neon's history-window documentation](https://neon.com/docs/postgres/backup-restore/history-window) identifies this setting, but a published plan default is not evidence of this project's configuration. This history window is also distinct from any separate provider disaster-recovery or deleted-project recovery retention. Until those applicable terms/settings are verified, privacy wording must not promise a specific provider-backup deletion deadline.
+
+## Durability and limits
+
+Each command acquires a durable 120-second lease with a random fencing token. Work that calls an AI provider does not hold a database transaction open. The engine checkpoints its generation reservation before calling the provider and saves the result afterward. An interrupted request remains discoverable, and the existing engine recovers expired generation attempts without replaying a provider charge automatically. An expired or deleted workspace rejects late-worker checkpoints. Retries with an existing generation key use the saved result or return its recorded running/failed status.
+
+Launch limits are server-enforced: ten stored workbooks per account, 120 actions per account per UTC hour, twelve live generation attempts per account per UTC day, and 100 live attempts across the service per UTC day. Each workbook can retain fifty report attempts in total. Failure attempts count; replaying a recorded request does not spend a new generation allowance. The user and service counters update transactionally. Usage identifiers are HMACs of Google subjects under `TIDEPATH_USAGE_SECRET`; counter rows survive data deletion for at most 30 days so deleting/recreating an account does not reset a budget. Keep that secret stable unless intentional counter invalidation is accepted.
+
+Selected source data is limited to 1,000 donation rows, 32 columns and one megabyte. A stored workspace is limited to five megabytes. Reports use USD positive gifts only in the first release; refunds, mixed currencies and larger source tables need a later schema/workflow. Product screens disclose those boundaries.
+
+## Google writes and concurrent edits
+
+An export uses a deterministic output sheet ID and a marker bound to the account, approved revision, exact content and source digest. Google commits new-sheet creation, literal cell values and the marker in a single `batchUpdate`. A retry verifies the existing marker and every approved cell; it never overwrites an edited target or creates a second copy. Leading `=` text is stored with `stringValue`, not as a formula.
+
+The server rereads source cells immediately before writing and again afterward, and checks its database lease immediately before mutation. Google Sheets does not provide a compare-and-swap operation combining arbitrary source-cell comparison with creating a report tab. A human edit or data-deletion request racing an already in-flight Google write can therefore leave a new tab requiring inspection; Tidepath returns an error rather than reporting a confirmed current export. Data deletion cannot retract a write already sent to Google. Users can reimport, review, and approve a fresh report. Existing tabs are never silently removed or overwritten.
+
+## Repeatable database verification
+
+`tests/public-storage.test.ts` needs `TEST_PUBLIC_DATABASE_URL` set to an **unpooled migration-owner connection**. It creates a randomly named test schema, applies the migrations there, and removes only that test schema afterward. Runtime operations inside the test still assume the restricted role. It verifies isolation, concurrent lease exclusion, durable checkpoints, expired-worker fencing, deletion during work, server-side session expiry, quotas after deletion, and content expiry before cleanup.
+
+`scripts/check-public-runtime.ts` instead uses the actual restricted runtime connection and two unique synthetic account IDs. It deletes only those synthetic accounts afterward. This checks the deployed credential boundary rather than assuming a migration-owner test proves runtime privileges.
