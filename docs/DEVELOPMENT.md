@@ -20,11 +20,61 @@ npm run check:toolchain
 npm run dev
 ```
 
-Open **Tidepath** on port 3000 in VS Code's **Ports** panel. The server listens on container loopback; VS Code forwards it to host localhost. Do not use Docker `-p` with the loopback-bound server. If local port 3000 is occupied, use the actual forwarded address shown in the Ports panel. Server startup is manual, so reopening the workspace does not start extra servers.
+Open **Tidepath** on port 3000 in VS Code's **Ports** panel. The server listens on container loopback; VS Code forwards it to host localhost. The shared `appPort` declaration exists for non-VS Code tooling (see the Devcontainer CLI workflow below) and changes nothing here, because port 3000 is already forwarded through `forwardPorts`. Do not add Docker `-p` publishing for the loopback-bound server. If local port 3000 is occupied, use the actual forwarded address shown in the Ports panel. Server startup is manual, so reopening the workspace does not start extra servers.
 
 The image selects `linux/arm64` on ARM machines and `linux/amd64` on x86-64 machines. No emulation is forced. The `node` user runs terminals, installs, and application commands; Git, Bash, curl, ripgrep and less are available. VS Code's built-in TypeScript support uses the workspace compiler.
 
 No personal configuration mounts, host Docker socket, API keys or `.env.local` are required. The default fictional demo works without credentials. Git authentication remains a contributor-specific host setup; this configuration does not install keys.
+
+## Devcontainer CLI workflow (without VS Code)
+
+VSCodium and other editors cannot use Microsoft's **Dev Containers** extension. The Dev Container CLI drives the same checked-in `.devcontainer/devcontainer.json`: it builds the image, applies the `node` user, mounts and `postCreateCommand` (`npm ci`) just like VS Code. Only port handling differs. The `appPort` declaration publishes container port 3000 through Docker to `127.0.0.1:3000` on the host, and Docker publishing requires the server to accept connections from beyond container loopback. Use `npm run dev:container` (binds `0.0.0.0:3000`) in this workflow; `npm run dev` remains loopback-bound for native and VS Code use. The published port is restricted to host loopback, so nothing is exposed to the local network.
+
+Host prerequisites (Debian example):
+
+- A running Docker engine usable as your normal user. `docker info` must succeed before continuing.
+- Dev Container CLI **0.90.0**, installed either way:
+  - npm installation, which requires host Node.js 20 or newer, npm and build tools:
+
+    ```sh
+    sudo apt-get update
+    sudo apt-get install -y python3 build-essential
+    npm install --global --prefix "$HOME/.local" @devcontainers/cli@0.90.0
+    export PATH="$HOME/.local/bin:$PATH"
+    ```
+
+  - Standalone installer, which bundles its own Node.js and needs no host Node or build tools:
+
+    ```sh
+    curl -fsSL https://raw.githubusercontent.com/devcontainers/cli/main/scripts/install.sh | sh -s -- --version 0.90.0
+    export PATH="$HOME/.devcontainers/bin:$PATH"
+    ```
+
+From the repository root, create the container and open a shell in it:
+
+```sh
+devcontainer up --workspace-folder .
+devcontainer exec --workspace-folder . bash
+```
+
+No temporary configuration file is needed: the CLI reads the checked-in file in place, so the relative `Dockerfile` and `context` paths keep resolving. The shell runs inside the container as the `node` user, in `/workspaces/tidepath`. Inside it, start the application:
+
+```sh
+npm run check:toolchain
+npm run dev:container
+```
+
+Open `localhost:3000` in a browser on the host. The `0.0.0.0` binding inside the container is what makes the published port reachable; the host side is limited to `127.0.0.1`.
+
+Keep VSCodium open on the host checkout. Saved changes reach the container through the workspace bind mount and the dev server recompiles them; run development commands in the container shell. VSCodium's extensions and language server run on the host, so TypeScript intelligence needs a separate native `npm ci` (see [Native development](#native-development)); the container's `node_modules` volume is not visible to host editors.
+
+Host port 3000 must be free when `devcontainer up` creates the container: Docker allocates the published `127.0.0.1:3000` immediately, and a native dev server already using that port makes container creation fail. Stop it first. VS Code's forwarding allocates no host port and is unaffected.
+
+To run the project checks from the host:
+
+```sh
+devcontainer exec --workspace-folder . npm run verify
+```
 
 ## Native development
 
@@ -59,7 +109,7 @@ The optional `powershell -File scripts/dev.ps1 -Port 3000` launcher checks the s
 Source is shared with the host. Container `node_modules` and `.next` use workspace-specific Docker volumes; native installations/builds remain in the host checkout. TypeScript's incremental cache lives under `.next/cache` so it is isolated too. Never copy dependency directories between operating systems or architectures. `.data/state.json` remains in the checkout and persists across container rebuilds.
 
 - After pulling a changed lockfile, run `npm ci` in each workflow you use. Reopening an existing container does not automatically reinstall dependencies.
-- After changing the Dockerfile or devcontainer configuration, run **Dev Containers: Rebuild Container**. Existing dependency/build volumes survive a rebuild.
+- After changing the Dockerfile or devcontainer configuration, run **Dev Containers: Rebuild Container**, or `devcontainer up --workspace-folder .` again in the CLI workflow. Existing dependency/build volumes survive a rebuild.
 - To clear stale build output, stop the server and remove only the contents of `.next` in the affected workflow. Do not remove the mounted directory itself.
 - For an intentional package change, use `npm install <package>@<exact-version>` (or `--save-dev`), review both manifests, and run `npm run verify`. `save-exact=true` keeps new direct versions exact.
 - npm 12 blocks unapproved dependency lifecycle scripts. The reviewed `esbuild@0.28.2` installer is allowed for binary setup/validation. The optional macOS `fsevents` package ships its binary; its implicit rebuild is denied. Review scripts before using `npm install-scripts approve <package>`; approvals are version-specific. Do not approve every dependency automatically.
@@ -77,7 +127,7 @@ npm run verify
 
 This checks the toolchain, typechecks, runs the existing tests, builds production output, starts a production server on port **3210**, and runs the deterministic HTTP smoke suite. It uses a temporary state file and disables live credentials, stops its server, and deletes that temporary state afterward. Port 3210 must be free; the verifier refuses to use an already-running server. Builds and the development server can coexist because Next.js keeps development output under `.next/dev`.
 
-For container automation without VS Code, install the pinned CLI outside the project (or use the pinned one-off invocation below):
+For container automation without VS Code, install the pinned CLI outside the project as described in the [Devcontainer CLI workflow](#devcontainer-cli-workflow-without-vs-code) section, or use the pinned one-off invocation below:
 
 ```sh
 npx --yes @devcontainers/cli@0.90.0 up --workspace-folder .
