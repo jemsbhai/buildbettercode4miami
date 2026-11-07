@@ -1,6 +1,6 @@
 # Tidepath Marketplace submission materials
 
-This is prepared standard-report-only listing copy and a review checklist. The earlier version-1 AI offering and screenshots are superseded; replace the saved Marketplace draft after the matching backend and native version are verified. It is not a submitted or approved listing. Publish only after OAuth configuration, hosted native verification and applicable Google reviews are complete. [The dated release record](PUBLIC-RELEASE-2026-11-07.md) distinguishes the deployed backend from these outstanding installation and review gates. [The reviewer package](PUBLIC-ADDON-REVIEW.md) contains the exact project configuration, scope justifications, test fixture, recording outline and submission evidence checklist.
+The standard-report-only Store Listing draft is saved with the canonical links at `tidepath.muntasersyed.com` and the real **version-2** native screenshot. Google confirmed **Draft saved** and disabled Save Draft after the screenshot replaced the historical version-1 AI image. App Configuration also saved the canonical Developer Website (`/terms`), Application Website and integer script version **2**. Version 2 passed native acceptance against backend `51e9f39`, Netlify deployment `6aefb7c009d3e43c1de1f189`; the real website Google sign-in also returned to clean `/account` without query or fragment. Nothing has been submitted for review, and public installation still depends on Google review. [The dated release record](PUBLIC-RELEASE-2026-11-07.md) records the acceptance coverage. [The reviewer package](PUBLIC-ADDON-REVIEW.md) contains exact configuration, scope justifications and remaining evidence. Current proofs are `.data/public-marketplace-standard-v2-saved.png` and `.data/public-marketplace-version2-saved.png`.
 
 ## Listing fields
 
@@ -67,6 +67,8 @@ Capture these screens with fictional test data:
 2. Reviewed import totals and a contact-evidence donor match.
 3. Report with numeric checks, explicit approval and the new output tab.
 
+The uploaded release screenshot is `.data/public-addon-release/marketplace-native-standard-v2-1280x800.png`, captured from the real numeric version-2 session. It shows the standard-report action, an approved $180 report for three donors and the actual output tab. It contains no AI control. The historical version-1 AI capture is retained only as internal historical evidence.
+
 Do not include personal email addresses, browser profile details, developer credentials, the demo tunnel, or unsupported claims such as program metrics. Capture only features confirmed on the submitted code version. Follow Google's [review criteria](https://developers.google.com/workspace/marketplace/about-app-review), including accurate account/sign-out behavior and consistent app naming.
 
 ## Reviewer walkthrough
@@ -79,14 +81,15 @@ After installation, open Extensions → Tidepath → Open Tidepath. Complete Goo
 
 - [x] Publish the owner-approved support/privacy contact: `jemsbhai@gmail.com`.
 - [x] Receive publisher identity, non-trader declaration and free pricing with service limits.
-- [ ] Confirm name availability and copy the approved publisher fields into the Google listing.
-- [ ] Verify final publisher-approved privacy, terms and support content on the authorized domain. Hosted page availability is already recorded separately in the release evidence.
-- [ ] Observe a scheduled hosted cleanup invocation and confirm provider backup retention for the privacy disclosure.
-- [ ] Record the exact tested backend commit, Apps Script version, Cloud project and trusted OAuth client IDs.
-- [ ] Complete the fresh-workbook acceptance record in `PUBLIC-ADDON-RELEASE.md`.
+- [x] Copy the approved publisher fields into the Google draft; name/review acceptance remains Google's decision.
+- [x] Verify deployed privacy, terms and support pages on the canonical authorized domain; see hosted checks in the release evidence.
+- [x] Verify actual hosted retention cleanup and review Neon Free retention bounds; the exact project history slider and universal backup-erasure deadline are not claimed.
+- [ ] Observe a naturally scheduled daily cleanup invocation; the successful hosted **Run now** is recorded separately.
+- [x] Record the tested backend, Apps Script version, Cloud project and trusted OAuth clients.
+- [x] Record version-2 native import, merge, incorrect-amount approval block, corrected approval and write/retry acceptance. Other cases retain their separate passed/untested status in the release record.
 - [ ] Finish applicable Google OAuth verification and update consent publishing status appropriately.
-- [ ] Replace the historical version-1 AI screenshot with real native screenshots of the verified standard-only release, and confirm reviewer instructions.
-- [ ] Configure Marketplace SDK visibility as public and installation options deliberately; Google documents that public/private visibility cannot be changed after saving App Configuration. Use the Sheets Editor add-on integration with the tested script ID and integer version, as detailed in the reviewer package.
+- [x] Replace the historical version-1 AI screenshot with the real version-2 standard-report capture and update reviewer instructions.
+- [x] Save Marketplace SDK Public visibility, Individual + Admin installation, and Sheets Editor add-on integration with the tested script ID and integer version 2. Google documents that public/private visibility cannot be changed after saving App Configuration.
 - [ ] Submit for Marketplace review and record the submission ID/status.
 - [ ] After approval, verify the public install link with a fresh account and record organizational restrictions observed.
 

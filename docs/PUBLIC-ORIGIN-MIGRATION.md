@@ -1,6 +1,6 @@
 # Public origin migration inventory
 
-Prepared November 7, 2026. The selected canonical origin is **https://tidepath.muntasersyed.com**. Local application sources, publisher guards, verification-script defaults and listing/reviewer links now use it. This is prepared migration code, not proof that the new host or DNS is live. The actual Netlify deployment target and the new CNAME remain pending.
+Prepared November 7, 2026. The canonical origin **https://tidepath.muntasersyed.com** is live on Netlify Free with valid TLS. Local application sources, publisher guards, verification-script defaults and saved Marketplace links use it. Backend `51e9f39`, Netlify deployment `6aefb7c009d3e43c1de1f189`, passed hosted checks, real Google website sign-in/sign-out and numeric native version-2 acceptance. The Store Listing draft now contains the verified version-2 standard-report screenshot. Google branding/data-access review and public installation remain pending; deployment is not publication approval.
 
 ## Domain findings
 
@@ -8,7 +8,7 @@ Google requires the top private domain used by consent pages, web-client redirec
 
 There is a material verification distinction: Search Console supports HTML-file or meta-tag verification for a URL-prefix property, but Google's current OAuth domain-remediation instructions explicitly require a DNS-level Domain property for an unverified-domain finding. Do not represent successful HTML-file verification or waiting 24 hours as proof of OAuth domain approval. See [Search Console ownership methods](https://support.google.com/webmasters/answer/9008080?hl=en) and [OAuth domain remediation](https://support.google.com/cloud/answer/13804266?hl=en).
 
-Read-only public DNS checks found:
+Initial read-only public DNS checks found:
 
 | Record | Observed result |
 | --- | --- |
@@ -19,11 +19,13 @@ Read-only public DNS checks found:
 | `tidepath.muntasersyed.com` | NXDOMAIN; no existing hostname found |
 | Connected Vercel domain lookup | Not found in the connected `jemsbhais-projects` team |
 
-The [live personal website](https://muntasersyed.com/) identifies Muntaser Syed. The root operator subsequently confirmed the existing `sc-domain:muntasersyed.com` Domain property under `jemsbhai@gmail.com`: Settings showed **You are a verified owner**, with the property added September 20. Root-domain ownership covers its subdomains, so no additional TXT record is currently needed for this candidate. The existing GoDaddy browser session also opened the exact domain's DNS table with 12 records and record-management controls.
+The [live personal website](https://muntasersyed.com/) identifies Muntaser Syed. The root operator subsequently confirmed the existing `sc-domain:muntasersyed.com` Domain property under `jemsbhai@gmail.com`: Settings showed **You are a verified owner**, with the property added September 20. Root-domain ownership covers its subdomains, so no additional Google ownership TXT record was needed. Netlify's separate ownership proof is recorded below. The existing GoDaddy browser session opened the exact domain's DNS table with 12 records and record-management controls.
 
 The selected subdomain `tidepath.muntasersyed.com` requires no new domain purchase. Once the Netlify site exists, add that exact custom subdomain to Netlify and create only its CNAME to the actual site hostname at the existing DNS provider. Preserve apex A records, `www`, email records and nameservers. Netlify documents this [external-DNS subdomain configuration](https://docs.netlify.com/manage/domains/configure-domains/configure-external-dns/). Confirm TLS and content before enabling native execution on the new host. This does not authorize a purchase, paid plan, DNS migration or change to the personal website.
 
-The GoDaddy form is prepared but unsaved: **CNAME**, name **tidepath**, default **1/2 Hour** TTL, empty target. Save remains disabled. Fill the target only after the actual Netlify deployment and custom-domain assignment have been verified. No existing record was selected for editing or deletion.
+Netlify reserved site ID `c5b62d90-5666-4c70-9da6-11ac0cfef6fe` in the verified Free team and required an ownership TXT at `subdomain-owner-verification.muntasersyed.com`. The root operator authorized that exact additional public proof record. GoDaddy saved it, authoritative DNS confirmed it, and Netlify accepted it before assigning the custom subdomain as the site's primary domain.
+
+GoDaddy then saved **CNAME tidepath → tidepath-sheets.netlify.app**. An authoritative query to `ns27.domaincontrol.com` returned that exact target and **1800-second TTL**. The DNS table increased from 12 to 14 records. Readback confirmed the original four apex GitHub Pages A records, `www` CNAME and nameservers remain unchanged; no existing record was edited or deleted. Private proof captures are `.data/public-dns-netlify-txt-saved.png` and `.data/public-dns-tidepath-cname-saved.png`.
 
 ## Repository and private configuration inventory
 
@@ -57,4 +59,6 @@ The source and private publisher configuration changes listed above are prepared
 8. Update Marketplace website/developer/support/setup/privacy/terms links, standard-only copy and real native screenshot; save draft. The Google scopes and sensitive-scope video gates remain. Record the video only against the final domain/native version/backend combination.
 9. Verify the replacement deployment and carefully retire the public project on the paid host under the root operator's direction. Preserve the unrelated demo and personal website. A redirect running on a paid host is still traffic to that host and is not evidence of zero public-usage charges.
 
-The root operator has saved the new exact web OAuth callback `https://tidepath.muntasersyed.com/api/auth/google/callback` and added `muntasersyed.com` to Authorized domains, temporarily retaining the old domain until the homepage is switched. DNS, final hosting verification, native version execution and saved Marketplace draft migration are still pending. Local source preparation did not mutate the existing personal website or its DNS records.
+The root operator saved the exact web OAuth callback `https://tidepath.muntasersyed.com/api/auth/google/callback`, canonical branding URLs and only `muntasersyed.com` in Authorized domains. Real sign-in now reaches clean `/account` without query or fragment, and sign-out passed. Numeric native version 2 passed the canonical-host import/merge/report/approval/write/retry/deletion workflow. Marketplace App Configuration saved integer version 2 and canonical website fields; Store Listing saved canonical links, standard-only copy and the actual native version-2 screenshot. No review submission occurred. Google branding remains unverified; the real website account chooser still displays `muntasersyed.com` rather than the saved Tidepath title.
+
+The four-file native bundle is `.data/public-addon-version2/`, containing only `Code.gs`, `Sidebar.html`, `Picker.html` and `appsscript.json`; publisher helpers are excluded. All 11 native-client/sidebar workflow tests passed after the origin change. Final backend and native evidence are recorded in [the dated release record](PUBLIC-RELEASE-2026-11-07.md). The former Vercel public project is paused, disconnected from Git and has cron disabled; the unrelated demo and existing personal website remain preserved.
