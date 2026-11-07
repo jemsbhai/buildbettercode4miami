@@ -84,7 +84,7 @@ async function harness() {
   const dependencies: PublicCommandDependencies = {
     authenticate: async headers => {
       assert.equal(headers.get("authorization"), "Bearer signed-test-identity");
-      assert.equal(headers.get("x-google-access-token"), "test-google-access");
+      assert.equal(headers.get("x-tidepath-google-access-token"), "test-google-access");
       return { sub: "sidebar-owner", email: "owner@example.test" };
     },
     store: {

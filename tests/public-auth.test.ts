@@ -39,7 +39,7 @@ test("public identity rejects other clients, issuers, expired and unverified acc
 });
 
 test("addon binds access token to the verified Google subject", async () => {
-  const headers = new Headers({ authorization: "Bearer signed-token", "x-google-access-token": "google-access-token" });
+  const headers = new Headers({ authorization: "Bearer signed-token", "x-tidepath-google-access-token": "google-access-token" });
   let requestCount = 0;
   const fakeFetch: typeof fetch = async (url, init) => {
     requestCount++;
@@ -52,6 +52,38 @@ test("addon binds access token to the verified Google subject", async () => {
   await assert.rejects(() => authenticateAddon(headers, { verify: async () => principal, fetch: async () => Response.json({ sub: "other-user" }) }), /accounts do not match/);
   await assert.rejects(() => authenticateAddon(new Headers(), { verify: async () => principal, fetch: fakeFetch }), /sign in again/);
   assert.equal(requestCount, 1);
+});
+
+test("addon accepts only its own access-token header and still verifies the signed identity", async () => {
+  const { token, key } = await signed();
+  let verificationCount = 0;
+  let userinfoCount = 0;
+  const dependencies = {
+    audiences: [audience],
+    verify: async (value: string, audiences: string[]) => {
+      verificationCount++;
+      return verifyGoogleIdentity(value, audiences, { key });
+    },
+    fetch: (async (_url: string | URL | Request, init?: RequestInit) => {
+      userinfoCount++;
+      assert.equal(new Headers(init?.headers).get("authorization"), "Bearer google-access-token");
+      return Response.json({ sub: principal.sub });
+    }) as typeof fetch,
+  };
+  const reserved = new Headers({ authorization: `Bearer ${token}`, "x-google-access-token": "google-access-token" });
+  await assert.rejects(() => authenticateAddon(reserved, dependencies), /Open Tidepath from Google Sheets/);
+  assert.equal(verificationCount, 0);
+  assert.equal(userinfoCount, 0);
+
+  const supported = new Headers({ authorization: `Bearer ${token}`, "x-tidepath-google-access-token": "google-access-token" });
+  assert.deepEqual(await authenticateAddon(supported, dependencies), principal);
+  assert.equal(verificationCount, 1);
+  assert.equal(userinfoCount, 1);
+
+  supported.set("authorization", "Bearer forged");
+  await assert.rejects(() => authenticateAddon(supported, dependencies), /could not be verified/);
+  assert.equal(verificationCount, 2);
+  assert.equal(userinfoCount, 1);
 });
 
 test("workbook authorization rejects unreadable, noneditable and non-sheet files", async () => {

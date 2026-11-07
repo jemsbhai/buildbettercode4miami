@@ -64,7 +64,7 @@ function harness() {
     } }) },
   };
   const request = (input: Record<string, unknown>, user = "user-a", headers: Record<string, string> = {}) => new Request("https://tidepath.example/api/public/command", {
-    method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${user}`, "x-google-access-token": "access", ...headers }, body: JSON.stringify({ workbookId, ...input }),
+    method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${user}`, "x-tidepath-google-access-token": "access", ...headers }, body: JSON.stringify({ workbookId, ...input }),
   });
   const command = async (input: Record<string, unknown>, user?: string) => { const response = await handlePublicCommand(request(input, user), dependencies); return { status: response.status, body: await response.json() }; };
   const importRows = async () => {

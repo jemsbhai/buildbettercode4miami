@@ -29,7 +29,7 @@ export async function handlePublicCommand(request: Request, dependencies: Public
     await store.consumeUsage(identity, "command");
     const body = await readJson(request);
     const workbookId = workbookSchema.parse(body.workbookId);
-    const gateway = (dependencies.gateway ?? (token => new GoogleWorkbookGateway(token)))(request.headers.get("x-google-access-token")!);
+    const gateway = (dependencies.gateway ?? (token => new GoogleWorkbookGateway(token)))(request.headers.get("x-tidepath-google-access-token")!);
     await gateway.assertWorkbookAccess(workbookId);
     if (body.action === "delete") {
       if (body.confirmation !== "DELETE") throw new AppError("Confirm deletion by typing DELETE.");

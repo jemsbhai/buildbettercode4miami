@@ -43,7 +43,7 @@ test("public command derives workbook and selection, discarding browser identity
   assert.deepEqual(body.selection, trusted);
   for (const key of ["tenantId", "userId", "email", "identity", "accessToken"]) assert.equal(body[key], undefined);
   assert.equal(app.requests[0].options.headers.Authorization, "Bearer signed-identity-token");
-  assert.equal(app.requests[0].options.headers["X-Google-Access-Token"], "short-lived-google-token");
+  assert.equal(app.requests[0].options.headers["X-Tidepath-Google-Access-Token"], "short-lived-google-token");
   assert.equal(app.requests[0].url, "https://tidepath-sheets.vercel.app/api/public/command");
 });
 

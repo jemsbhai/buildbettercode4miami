@@ -122,7 +122,7 @@ function tidepathRequest_(input) {
   try {
     response = UrlFetchApp.fetch(TIDEPATH_ORIGIN_ + '/api/public/command', {
       method: 'post', contentType: 'application/json', payload: JSON.stringify(payload),
-      headers: { Authorization: 'Bearer ' + identityToken, 'X-Google-Access-Token': ScriptApp.getOAuthToken() },
+      headers: { Authorization: 'Bearer ' + identityToken, 'X-Tidepath-Google-Access-Token': ScriptApp.getOAuthToken() },
       muteHttpExceptions: true, followRedirects: false, validateHttpsCertificates: true
     });
   } catch (_) { throw new Error('Tidepath could not be reached. Your source cells are safe. Retry this action shortly.'); }

@@ -43,7 +43,7 @@ export function addonAudiences() {
 /** Both tokens are short lived and remain in server request memory only. */
 export async function authenticateAddon(headers: Headers, dependencies: AddonAuthDependencies = {}): Promise<GoogleIdentity> {
   const authorization = headers.get("authorization") ?? "";
-  const accessToken = headers.get("x-google-access-token") ?? "";
+  const accessToken = headers.get("x-tidepath-google-access-token") ?? "";
   if (!authorization.startsWith("Bearer ") || !accessToken || accessToken.length > 12_000 || /[\r\n]/u.test(accessToken)) {
     throw new AppError("Open Tidepath from Google Sheets and sign in again.", 401);
   }
