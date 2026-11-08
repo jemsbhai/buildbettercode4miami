@@ -13,7 +13,7 @@ export default function Modal({ title, pulse, onClose, children }: { title: stri
     return () => { dialog?.close(); };
   }, []);
   return <dialog ref={ref} className={`modal-shell${pulse ? " modal-pulse" : ""}`} aria-label={title} onCancel={onClose} onClick={(event) => { if (event.target === ref.current) onClose(); }}>
-    <div className="modal-topbar"><button className="icon-button" aria-label={`Close ${title}`} onClick={onClose}><X size={19} /></button></div>
+    <div className="modal-topbar"><strong className="modal-title">{title}</strong><button className="icon-button" aria-label={`Close ${title}`} onClick={onClose}><X size={19} /></button></div>
     {children}
   </dialog>;
 }
