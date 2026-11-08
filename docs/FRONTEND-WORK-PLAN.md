@@ -109,7 +109,7 @@ For each implemented card: typecheck, relevant actual API interaction, keyboard/
 
 Protect all four brief slices: Rosa preserves gifts/cents; follow-ups have source-backed reasons and explicitly simulated receipts; wrong claims and over-limit applications are blocked (fixture/API checks can demonstrate these without a browser document editor); grant spending respects funder year/categories; the exact counseling copy excludes the private sentinel and blocks nonpayable/stale copies. Approval/export must not be described as actual external delivery. The original Challenge 1 asks for sent follow-ups; the local simulation boundary remains an explicit coverage limitation.
 
-Final submission: **November 8, 2026, 4:45 PM America/New_York**. Recommended feature freeze: **3:15 PM Eastern**, leaving 90 minutes for verification/rehearsal/submission; this is a planning buffer, not an organizer deadline. Cut Storybook, extra polish, additional integrations and a second funder first. Do not resurrect the original suggested plan's optional package stack, exact-replay claim, or proposal to drop application drafting: the revised [build plan](BUILD-PLAN.md) requires the application slice.
+Final submission: **November 8, 2026, 4:45 PM America/New_York**. Liam's updated feature/code freeze target is **around 3:30 PM Eastern**, prioritizing feature delivery and usability. Authentication is deferred. See [second-pass notes](FE-01-SECOND-PASS.md). Cut Storybook, extra polish, additional integrations and a second funder first. Do not resurrect the original suggested plan's optional package stack, exact-replay claim, or proposal to drop application drafting: the revised [build plan](BUILD-PLAN.md) requires the application slice.
 
 ## Source trail
 
