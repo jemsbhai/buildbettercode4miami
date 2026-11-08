@@ -3,8 +3,8 @@ import styles from "./welcome-screen.module.css";
 
 const choices = [
   { label: "Inbox", icon: Inbox },
-  { label: "Grants", icon: Pencil },
-  { label: "Counseling session", icon: HeartHandshake },
+  { label: "Grants & Reports", icon: Pencil },
+  { label: "Counseling sessions", icon: HeartHandshake },
 ];
 
 export function WelcomeScreen() {
