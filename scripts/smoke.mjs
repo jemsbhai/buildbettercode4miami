@@ -34,6 +34,15 @@ async function inspectReplay(draft, evidenceCurrent = true) {
 }
 
 try {
+  for (const path of ["/", "/inbox", "/grants", "/counseling"]) {
+    const response = await fetch(`${base}${path}`, { signal: AbortSignal.timeout(10_000) });
+    assert.equal(response.status, 200, `Direct route ${path}`);
+    const html = await response.text();
+    assert.match(html, /SYNTHETIC DEMO/);
+    assert.match(html, /aria-label="Workspace"/);
+    assertPublic(html);
+    checks++;
+  }
   await request("reset", "POST");
   const crossOrigin = await fetch(`${base}/api/reset`, { method: "POST", headers: { Origin: "https://unrelated.example" }, signal: AbortSignal.timeout(10_000) });
   assert.equal(crossOrigin.status, 403);
