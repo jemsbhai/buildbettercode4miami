@@ -1,5 +1,7 @@
 # Backend handoff for the frontend team
 
+**Frontend organization update, November 7:** the [frontend work plan](FRONTEND-WORK-PLAN.md) replaces the old component ownership and parent-callback organization referenced below. Liam owns inbox/counseling, Robby owns reports/grants, pages own view loading, and view components consume props. FE-03 is Done: pages pass backend callbacks as props and feature state handling is refined during implementation. Browser document editing is out of scope; older frontend editor walkthroughs below are superseded, while backend validation checks remain applicable. The API contracts and integration checks in this handoff remain applicable.
+
 Keep building in the existing Next.js + TypeScript app. The backend adds capabilities to the current contracts; existing note, draft, disclosure and dashboard requests still work. Shared types in `src/lib/types.ts` remain authoritative. Continue using the parent refresh callbacks and the server-returned dashboard.
 
 **Verification status:** 94 automated tests, the production build including TypeScript, and 74 HTTP checks passed. Real report, application and follow-up calls passed using `gpt-5.4-mini`. No new browser walkthrough was performed; teammates' new frontend controls still need integration and rehearsal. See [VERIFICATION.md](VERIFICATION.md) for current evidence and the historical browser baseline.

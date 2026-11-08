@@ -45,6 +45,8 @@ Challenge 4 is also required: one made-up week, notes written once, a required-f
 
 ## Parallel ownership
 
+**Updated November 7:** Liam is frontend A; Robby is frontend B. The [frontend work plan](FRONTEND-WORK-PLAN.md) now governs frontend routes, component boundaries, named ownership and Kanban work items. The table below describes the original scaffold boundaries; its feature responsibilities still apply, but its component paths and shared-shell ownership have been refined by the new plan.
+
 | Owner | Surface | First milestone |
 | --- | --- | --- |
 | Lead/backend | `src/lib/*`, `src/app/api/*`, domain tests, environment configuration and integration | Stable dashboard, mutations and reset; executable acceptance tests |
