@@ -3,18 +3,25 @@
 import { useState } from "react";
 import WorkspaceShell from "@/components/layout/workspace-shell";
 import EvidenceDrawer from "@/components/shared/evidence/evidence-drawer";
+import DraftEditor from "@/components/shared/drafts/draft-editor";
+import Modal from "@/components/shared/layout/modal";
 import useWorkspaceData from "@/app/_hooks/use-workspace-data";
 import { GrantsWorkspace } from "@/components/grants-workspace";
 import { ReportWorkspace } from "@/components/report-workspace";
 
 export default function Page() {
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
+  const [applicationDraftId, setApplicationDraftId] = useState<string | null>(null);
   const { dashboard, shell, evidence, onEvidence, onCloseEvidence, onError, generateReport, generateApplication, saveDraft, approveDraft, sendDraft, addExpense } = useWorkspaceData();
+  const applicationDraft = dashboard?.state.drafts.find((draft) => draft.id === applicationDraftId && draft.kind === "application");
   return <WorkspaceShell title="Every grant, on its own terms." description="Keep quarterly reports, applications and spending together." {...shell}>
     {dashboard ? <div className="workspace-content">
-      <ReportWorkspace dashboard={dashboard} kinds={["report", "application"]} selectedDraftId={selectedDraftId} onSelectDraft={setSelectedDraftId} onGenerateReport={generateReport} onSaveDraft={saveDraft} onApproveDraft={approveDraft} onSendDraft={sendDraft} onError={onError} onEvidence={onEvidence} />
-      <GrantsWorkspace dashboard={dashboard} onGenerateApplication={generateApplication} onAddExpense={addExpense} onError={onError} onEvidence={onEvidence} onDrafted={(draft) => setSelectedDraftId(draft.id)} />
+      <ReportWorkspace dashboard={dashboard} kinds={["report"]} selectedDraftId={selectedDraftId} onSelectDraft={setSelectedDraftId} onGenerateReport={generateReport} onSaveDraft={saveDraft} onApproveDraft={approveDraft} onSendDraft={sendDraft} onError={onError} onEvidence={onEvidence} />
+      <GrantsWorkspace dashboard={dashboard} onGenerateApplication={generateApplication} onAddExpense={addExpense} onError={onError} onEvidence={onEvidence} onDrafted={(draft) => setApplicationDraftId(draft.id)} />
     </div> : null}
+    {dashboard && applicationDraft ? <Modal title="Application review" onClose={() => setApplicationDraftId(null)}>
+      <DraftEditor draft={applicationDraft} dashboard={dashboard} onError={onError} onEvidence={onEvidence} onSaveDraft={saveDraft} onApproveDraft={approveDraft} onSendDraft={sendDraft} />
+    </Modal> : null}
     {evidence ? <EvidenceDrawer {...evidence} onClose={onCloseEvidence} /> : null}
   </WorkspaceShell>;
 }
