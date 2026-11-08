@@ -6,6 +6,17 @@
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/tidepath,type=bind",
   "workspaceFolder": "/workspaces/tidepath",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "username": "node",
+      "upgradePackages": "true"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": "false"
+    }
+  },
   "containerUser": "node",
   "remoteUser": "node",
   "updateRemoteUserUID": true,
@@ -15,10 +26,17 @@
     "source=tidepath-${devcontainerId}-next,target=/workspaces/tidepath/.next,type=volume"
   ],
   "postCreateCommand": "sudo chown node:node node_modules .next && npm ci --no-audit --no-fund",
-  "forwardPorts": [3000],
-  "appPort": [3000],
+  "forwardPorts": [
+    3000
+  ],
+  "appPort": [
+    3000
+  ],
   "portsAttributes": {
-    "3000": { "label": "Tidepath", "onAutoForward": "notify" }
+    "3000": {
+      "label": "Tidepath",
+      "onAutoForward": "notify"
+    }
   },
   "customizations": {
     "vscode": {

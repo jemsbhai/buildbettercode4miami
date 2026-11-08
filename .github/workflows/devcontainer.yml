@@ -3,7 +3,7 @@ name: Development baseline
 on:
   pull_request:
   push:
-    branches: [feature/frontend-base]
+    branches: [stable]
   workflow_dispatch:
 
 permissions:

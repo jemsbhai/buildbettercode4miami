@@ -1,0 +1,10 @@
+.summary { padding-bottom: 12px; }
+.description { margin-top: 8px; color: var(--muted); }
+.card h3 { font-size: 13px; overflow-wrap: anywhere; }
+.card p { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.card > strong { overflow-wrap: anywhere; }
+.evidence { margin-top: 14px; }
+.empty, .nextSteps { padding: 24px; }
+.nextSteps h3 { margin-top: 8px; }
+.nextSteps p { margin-top: 8px; color: var(--muted); }
+.links { display: flex; flex-wrap: wrap; gap: 12px; }

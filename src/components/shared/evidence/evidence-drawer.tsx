@@ -4,18 +4,21 @@ import { useEffect, useRef } from "react";
 import { FileText, X } from "lucide-react";
 import type { SourceRow } from "@/lib/types";
 
-export function EvidenceDrawer({ title, ids, sources, onClose }: {
-  title: string; ids: string[]; sources: SourceRow[]; onClose: () => void;
+export default function EvidenceDrawer({ title, sources, onClose }: {
+  title: string; sources: SourceRow[]; onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = ref.current;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialog?.showModal();
-    return () => { dialog?.close(); };
+    return () => {
+      dialog?.close();
+      if (trigger?.isConnected) trigger.focus();
+    };
   }, []);
-  const selected = new Set(ids);
-  const rows = sources.filter((source) => selected.has(source.id));
-  return <dialog ref={ref} className="evidence-drawer" aria-labelledby="evidence-title" onCancel={onClose}>
+  const rows = sources;
+  return <dialog ref={ref} className="evidence-drawer" aria-labelledby="evidence-title" onCancel={onClose} onClick={(event) => { if (event.target === ref.current) onClose(); }}>
     <div className="drawer-heading">
       <div><span className="eyebrow">THE RECORD BEHIND THE RESULT</span><h2 id="evidence-title">{title}</h2></div>
       <button className="icon-button" aria-label="Close evidence" onClick={onClose}><X size={20} /></button>

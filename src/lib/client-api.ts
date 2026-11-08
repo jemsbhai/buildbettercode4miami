@@ -4,9 +4,10 @@ export class ApiError extends Error {
   constructor(message: string, public issues: ValidationIssue[] = []) { super(message); }
 }
 
-export async function apiRequest<T>(path: string, method = "GET", body?: unknown): Promise<T> {
+export async function apiRequest<T>(path: string, method = "GET", body?: unknown, signal?: AbortSignal): Promise<T> {
   const response = await fetch(path, {
     method,
+    signal,
     headers: body === undefined ? undefined : { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
     cache: "no-store",
@@ -20,8 +21,3 @@ export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Something went wrong. Please try again.";
 }
 
-export function formatMetric(value: number, unit: string) {
-  return unit === "USD"
-    ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value)
-    : new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(value);
-}

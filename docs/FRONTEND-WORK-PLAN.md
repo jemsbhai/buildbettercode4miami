@@ -1,6 +1,6 @@
 # Frontend work plan: pages, components and ownership
 
-Agreed with Liam on November 7, 2026; updated after Liam and Robby completed FE-03 that evening. This is a work plan, not a claim that the refactor has shipped. The existing application uses client-side workspace tabs at `/`; feature components currently perform requests. The KanbanFlow board is [BBC World Service](https://kanbanflow.com/board/Xm6q3L7).
+Agreed with Liam on November 7, 2026; updated November 8 with the partial FE-01 foundation below. This is a work plan, not a claim that every feature has shipped. Four real routes now render read-only summaries; the old tab workspace and its request-performing feature components remain unmounted migration references. The KanbanFlow board is [BBC World Service](https://kanbanflow.com/board/Xm6q3L7).
 
 ## Confirmed decisions
 
@@ -59,7 +59,7 @@ src/components/
 src/lib/                   # existing domain/types/server services
 ```
 
-This is a target structure, not folders already created. Move run views to `shared/runs/` only if both routes actually consume them. Do not create layers just to fill the tree. Keep feature CSS scoped; preserve the existing single root application, npm, pinned dependencies/runtime and devcontainer.
+This is the target feature structure. The FE-01 foundation creates the route and summary-view directories; deeper feature folders remain future work. Move run views to `shared/runs/` only if both routes actually consume them. Do not create layers just to fill the tree. Keep feature CSS scoped; preserve the existing single root application, npm, pinned dependencies/runtime and devcontainer.
 
 Pages orchestrate data, map authoritative domain values into focused view props and render components. The server continues to own arithmetic, identity rules, field filtering, claim validation and approvals; “page-only data fetching” does not move domain logic into pages. Keep transport helpers separate from display components while implementing page callbacks. Even asynchronous CSV file reads need a page-owned boundary rather than remaining inside a view.
 
@@ -109,7 +109,7 @@ For each implemented card: typecheck, relevant actual API interaction, keyboard/
 
 Protect all four brief slices: Rosa preserves gifts/cents; follow-ups have source-backed reasons and explicitly simulated receipts; wrong claims and over-limit applications are blocked (fixture/API checks can demonstrate these without a browser document editor); grant spending respects funder year/categories; the exact counseling copy excludes the private sentinel and blocks nonpayable/stale copies. Approval/export must not be described as actual external delivery. The original Challenge 1 asks for sent follow-ups; the local simulation boundary remains an explicit coverage limitation.
 
-Final submission: **November 8, 2026, 4:45 PM America/New_York**. Recommended feature freeze: **3:15 PM Eastern**, leaving 90 minutes for verification/rehearsal/submission; this is a planning buffer, not an organizer deadline. Cut Storybook, extra polish, additional integrations and a second funder first. Do not resurrect the original suggested plan's optional package stack, exact-replay claim, or proposal to drop application drafting: the revised [build plan](BUILD-PLAN.md) requires the application slice.
+Final submission: **November 8, 2026, 4:45 PM America/New_York**. Liam's updated feature/code freeze target is **around 3:30 PM Eastern**, prioritizing feature delivery and usability. Authentication is deferred. See [second-pass notes](FE-01-SECOND-PASS.md). Cut Storybook, extra polish, additional integrations and a second funder first. Do not resurrect the original suggested plan's optional package stack, exact-replay claim, or proposal to drop application drafting: the revised [build plan](BUILD-PLAN.md) requires the application slice.
 
 ## Source trail
 
@@ -120,3 +120,74 @@ Final submission: **November 8, 2026, 4:45 PM America/New_York**. Recommended fe
 - Current source inspected: `src/app/page.tsx`, `src/components/*`, `src/app/api/[...path]/route.ts`; installed Next.js guides for Server/Client Components and data fetching.
 
 Application refactoring is delegated by these cards. This planning change does not implement routes, change APIs, install Storybook, or verify teammate completion.
+
+## FE-01 foundation pass — November 8
+
+Branch: `feature/fe-01`. Liam chose a partial scaffold delivery: real dashboard
+summary data with prop-driven placeholder views and fictional fixtures, rather
+than migrating feature actions in this pass. Storybook remains FE-12. FE-01 is
+still open until the full component-boundary and feature-migration acceptance
+criteria are met. This section records implementation scope, not live board status.
+
+### Routes and ownership
+
+| Area | Files / boundary | Owner |
+| --- | --- | --- |
+| Page orchestration | `src/app/{page,inbox/page,grants/page,counseling/page}.tsx`, `src/app/_hooks/use-workspace-data.ts` | Liam; Robby reviews grants interface |
+| Shell and navigation | `src/components/layout/` | Liam |
+| Overview summaries | `src/components/dashboard/` | Liam; Robby reviews grants/report summaries |
+| Inbox summaries and future actions | `src/components/inbox/` | Liam |
+| Grants, report/application review and downloads | `src/components/grants/` | Robby |
+| Counseling summaries and future audited note actions | `src/components/counseling/` | Liam |
+| Resolved evidence and summary presentation | `src/components/shared/` | Liam owns evidence integration; coordinate shared view changes |
+| Frontend transport / formatting / summary mapping | `src/lib/client-api.ts`, `src/lib/format.ts`, `src/lib/workspace-summaries.ts` | Liam foundation; coordinate shared changes |
+| Backend APIs and domain types | Existing `src/app/api/` and domain modules | Coordinate with backend lead |
+
+Pages invoke a page-layer hook that owns the dashboard request, cancellation,
+retry state and evidence resolution. Views accept focused summary cards and
+callbacks. The shared drawer receives resolved `SourceRow[]`, not IDs to look up.
+No new view imports transport helpers. The new views default-export one component
+per file; there are no private component-helper exceptions in this foundation.
+The server root layout remains unchanged. Links expose pathname-based active
+state and disable speculative route prefetch. Counseling renders whitelisted
+summary metadata and never requests a full note.
+
+### Fixtures and remaining migration
+
+Each new feature view has `*.fixtures.ts` exports for populated, empty and
+unavailable data. Layout fixtures cover ready, loading and request failure; drawer
+fixtures cover resolved rows and no rows. Fixtures contain fictional values and
+stub callbacks and are not imported by production pages. Future stories should
+render these same components; production pages do not render stories.
+
+The old `src/components/dashboard.tsx`, operations, reports, grants, disclosure
+workspaces and legacy evidence drawer remain **unmounted reference source**.
+Their fetching, named exports, large private editors and old document editing UI
+are not migrated or endorsed by this pass. `src/components/client-api.ts` is a
+compatibility facade; actual transport and formatting now live under `src/lib`.
+Do not use the legacy request pattern when implementing the new feature views.
+
+The new routes have no mutations, reset control, model drafting, document editor,
+approval or download actions. They show real summary data and explicitly label
+feature work still to come. Reports and applications belong under `/grants`;
+follow-up review/editing belongs under `/inbox`. Subsequent feature cards must
+preserve the existing API guarantees and audited note access described above.
+
+### Foundation validation
+
+November 8: `npm run verify` passed in the running **native Linux ARM64
+devcontainer**, with Node 24.19.0 / npm 12.0.2: typecheck, **142 tests**,
+production build and **65 HTTP checks**, including direct entry to all four
+routes. Validation used disposable state with live credentials disabled.
+
+Browser checks against a temporary production server confirmed real summary
+loading, sidebar active state, navigation across all four routes, inbox refresh,
+back/forward between grants and counseling, resolved giving evidence, and Escape
+dismissal of the drawer. All four pages fit a 390px viewport without horizontal
+overflow. The final overview had no captured browser errors or warnings. Loading
+was observed; empty summary mappings are unit-tested. Request-error/retry and
+empty/unavailable fixtures are supplied but were not separately exercised in the
+browser. Full notes and mutation controls are absent from this scaffold.
+
+The preview server was stopped after inspection. This pass did not revalidate
+x86-64, Windows/WSL2 or hosted CI and does not establish full feature integration.

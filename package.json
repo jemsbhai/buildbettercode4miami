@@ -15,20 +15,21 @@
     "sheets:bridge": "node --env-file-if-exists=.env.local --import tsx scripts/sheets-bridge.ts"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@openai/agents": "0.21.0",
+    "lucide-react": "0.468.0",
     "next": "16.4.5",
+    "openai": "7.53.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "@openai/agents": "0.21.0",
-    "zod": "4.6.7",
-    "lucide-react": "0.468.0",
-    "openai": "7.53.0"
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
     "@types/node": "20.19.43",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "tsx": "4.23.15"
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
   },
   "engines": {
     "node": "24.19.0",

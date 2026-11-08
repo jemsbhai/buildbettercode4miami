@@ -1,5 +1,5 @@
-import { TidepathDashboard } from "@/components/dashboard";
+import { WelcomeScreen } from "@/components/welcome-screen";
 
 export default function Page() {
-  return <TidepathDashboard />;
+  return <WelcomeScreen />;
 }

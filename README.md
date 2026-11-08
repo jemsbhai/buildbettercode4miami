@@ -4,7 +4,9 @@
 
 Built for the [DevDay Exchange Miami nonprofit challenges](https://docs.google.com/document/d/1dTh6wVOAtDjGyCIVv28Pm94Yfz8Z4kGo8DFhRNDpgsw/edit), covering a bounded slice of **1 + 2 + 6 + 4**. All people, gifts, funders, and sessions in this app are fictional.
 
-Public repository: [jemsbhai/buildbettercode4miami](https://github.com/jemsbhai/buildbettercode4miami). Start from the default branch, `codex/tidepath-mvp`. Contributors without write access can fork the repository and submit pull requests back to that branch.
+Team upstream: [jemsbhai/buildbettercode4miami](https://github.com/jemsbhai/buildbettercode4miami), branch `codex/tidepath-mvp`.
+
+For Liam and collaborators, use [Liam's fork](https://github.com/liamstojanovic/buildbettercode4miami): **`stable` is the default branch and shared, verified baseline**. Create feature branches from `stable` and target pull requests to the fork's `stable`. Merge work after `npm run verify` passes and the relevant UI flows have been checked. To contribute integrated changes upstream, explicitly target `jemsbhai/buildbettercode4miami:codex/tidepath-mvp`; the fork's default branch does not change that destination. See [branch workflow](docs/DEVELOPMENT.md#branch-workflow).
 
 ## Run locally
 
@@ -13,7 +15,7 @@ The primary workflow is **VS Code → Dev Containers: Reopen in Container**, wit
 Native development requires exactly **Node.js 24.19.0 and npm 12.0.2**. See [development setup](docs/DEVELOPMENT.md) for macOS, Windows/WSL2 and Linux prerequisites, runtime installation, rebuilds, and validation.
 
 ```sh
-git clone https://github.com/jemsbhai/buildbettercode4miami.git
+git clone --branch stable https://github.com/liamstojanovic/buildbettercode4miami.git
 cd buildbettercode4miami
 npm ci
 npm run dev
@@ -21,7 +23,7 @@ npm run dev
 
 Open the local URL printed by Next.js. The optional Windows launcher, `powershell -File scripts/dev.ps1`, checks the same pinned toolchain and runs the development server.
 
-The demo starts with a deterministic fictional Q3 2026 dataset. The **Reset demo** control restores the same scenario. State is saved in `.data/state.json` and survives a server restart.
+The demo starts with a deterministic fictional Q3 2026 dataset. The **Reset demo** control restores the same scenario. State is saved in `.data/state.json` and survives a server restart. See [local runtime data and cleanup](docs/DEVELOPMENT.md#local-runtime-data-data-and-cleanup) before deleting `.data/` or rebuilding your workspace.
 
 Demo drafting needs no credentials. For real model drafting, copy `.env.example` to `.env.local`, set `OPENAI_API_KEY` there or in the server environment, then choose **Live · OpenAI agent** in the workspace. The default is `gpt-5.4-mini`; `OPENAI_MODEL` can override it. Keys remain on the server. No real email, SMS, or funder submission is performed.
 
