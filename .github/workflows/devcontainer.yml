@@ -31,6 +31,8 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .nvmrc
+          # Dependencies are installed in the container after its npm upgrade.
+          package-manager-cache: false
       - name: Install pinned container tooling
         run: |
           npm install --global npm@12.0.2
