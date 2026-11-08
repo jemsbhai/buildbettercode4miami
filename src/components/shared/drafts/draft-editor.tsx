@@ -9,6 +9,7 @@ import { formatMetric } from "@/lib/format";
 export type DraftEditorProps = {
   draft: Draft;
   dashboard: Dashboard;
+  subject?: string;
   onError: (message: string) => void;
   onEvidence: (ids: string[], title: string) => void;
   onSaveDraft: (draftId: string, revision: number, narrative: string, claims: Claim[]) => Promise<Draft>;
@@ -16,7 +17,7 @@ export type DraftEditorProps = {
   onSendDraft: (draftId: string, revision: number) => Promise<void>;
 };
 
-export default function DraftEditor({ draft, dashboard, onError, onEvidence, onSaveDraft, onApproveDraft, onSendDraft }: DraftEditorProps) {
+export default function DraftEditor({ draft, dashboard, subject, onError, onEvidence, onSaveDraft, onApproveDraft, onSendDraft }: DraftEditorProps) {
   const [narrative, setNarrative] = useState(draft.narrative);
   const [claims, setClaims] = useState<Array<{ metricId: string; value: string }>>(() => draft.claims.map((claim) => ({ ...claim, value: String(claim.value) })));
   const [busy, setBusy] = useState<"save" | "approve" | "send" | null>(null);
@@ -63,7 +64,7 @@ export default function DraftEditor({ draft, dashboard, onError, onEvidence, onS
   }
 
   return <section className="panel editor-panel" aria-labelledby="draft-title">
-    <div className="panel-heading"><div><span className="eyebrow">{draft.kind === "report" ? "QUARTERLY REPORT" : draft.kind === "application" ? "GRANT APPLICATION" : "FOLLOW-UP DRAFT"}</span><h2 id="draft-title">{draft.title}</h2></div><span className={`pill ${draft.status === "approved" && !dirty && !stale ? "pill-green" : "pill-amber"}`}>{dirty ? "Unsaved edits" : stale ? "Record changed" : draft.status === "approved" ? "Approved" : "Needs your review"}</span></div>
+    <div className="panel-heading"><div><span className="eyebrow">{draft.kind === "report" ? "QUARTERLY REPORT" : draft.kind === "application" ? "GRANT APPLICATION" : "FOLLOW-UP DRAFT"}</span><h2 id="draft-title">{draft.title}{subject ? `: ${subject}` : ""}</h2></div><span className={`pill ${draft.status === "approved" && !dirty && !stale ? "pill-green" : "pill-amber"}`}>{dirty ? "Unsaved edits" : stale ? "Record changed" : draft.status === "approved" ? "Approved" : "Needs your review"}</span></div>
     <div className="editor-body">
       <div className="draft-meta"><span>{draft.mode === "live" ? "Drafted with the OpenAI agent" : "Deterministic demo template · no model call"}</span><span>Revision {draft.revision}</span></div>
       {stale ? <div className="notice notice-warning"><AlertCircle size={18} /><span>The underlying record changed. Generate a fresh draft before approval.</span></div> : null}
@@ -76,7 +77,7 @@ export default function DraftEditor({ draft, dashboard, onError, onEvidence, onS
       })}</div></div> : null}
       <button className="text-button" onClick={() => onEvidence(draft.sourceIds, `Evidence for ${draft.title}`)}><Link2 size={14} />View all supporting records</button>
       {issues.length ? <div className="validation-panel" role="alert"><div><AlertCircle size={19} /><h3>Approval paused. Let’s check the facts.</h3></div><ul>{issues.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>)}</ul></div> : null}
-      {saved ? <p className="success-line" role="status"><CheckCircle2 size={16} />{draft.status === "approved" ? "Approved. This exact revision is ready to export." : "Your changes are saved for review."}</p> : null}
+      {saved && draft.status !== "approved" ? <p className="success-line" role="status"><CheckCircle2 size={16} />Your changes are saved for review.</p> : null}
       {receipt ? <div className="simulation-receipt" role="status"><CheckCircle2 size={17} /><div><strong>Simulated delivery recorded</strong><p>{receipt.recipient} · Revision {receipt.draftRevision} · {new Date(receipt.sentAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</p><small>This is a local demo receipt. No external message was sent.</small></div></div> : null}
     </div>
     <div className="editor-actions"><p>{draft.kind === "followup" ? "Approval saves a reviewed draft. Delivery is simulated only." : "Edits require a new review before export."}</p><div><button className="button button-outline" disabled={busy !== null || !dirty} onClick={() => save(false)}>{busy === "save" ? <LoaderCircle size={15} className="spin" /> : <Save size={15} />}Save draft</button>{draft.status === "approved" && !dirty && !stale ? <><a className="button button-outline" href={`/api/drafts/${draft.id}/export`} download><Download size={16} />Export</a>{draft.kind === "followup" && !receipt ? <button className="button button-primary" disabled={busy !== null} onClick={simulateDelivery}>{busy === "send" ? <LoaderCircle size={15} className="spin" /> : <Send size={15} />}Simulate delivery</button> : null}</> : <button className="button button-primary" disabled={busy !== null || stale} onClick={() => save(true)}>{busy === "approve" ? <LoaderCircle size={15} className="spin" /> : <Check size={16} />}Check & approve</button>}</div></div>

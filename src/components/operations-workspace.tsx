@@ -16,7 +16,7 @@ type Props = {
   readCsvFile: (file: File) => Promise<{ name: string; text: string }>;
   onError: (message: string) => void;
   onEvidence: (ids: string[], title: string) => void;
-  onDrafted?: (draft: Draft) => void;
+  onDrafted?: (draft: Draft, personName?: string) => void;
 };
 
 export function OperationsWorkspace({ dashboard, onMerge, onImport, onSaveAttendance, onDraftFollowup, readCsvFile, onError, onEvidence, onDrafted }: Props) {
@@ -46,7 +46,7 @@ export function OperationsWorkspace({ dashboard, onMerge, onImport, onSaveAttend
     setBusy(queueItemId); onError("");
     try {
       const draft = await onDraftFollowup(queueItemId);
-      onDrafted?.(draft);
+      onDrafted?.(draft, queue.find((item) => item.id === queueItemId)?.name);
     } catch (err) { onError(errorMessage(err)); } finally { setBusy(null); }
   }
 
