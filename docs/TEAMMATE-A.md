@@ -1,5 +1,7 @@
 # Teammate A: operations and the call list
 
+**November 7 frontend agreement:** Liam owns A. The [frontend work plan](FRONTEND-WORK-PLAN.md) supersedes this document's original component paths and parent-request wiring: A owns `/inbox` and `/counseling`, views receive props, and pages own view data loading. FE-03 is now Done: pages pass backend callbacks as props; feature state handling is worked out during implementation. Browser document editing is out of scope; older shared-editor wording is superseded. Retain the acceptance requirements below and use the [latest backend handoff](BACKEND-HANDOFF.md) for current contracts.
+
 ## Copy-paste assignment
 
 > Work in the existing Tidepath Next.js + TypeScript application on Node.js 22+. Enhance the functional base in `src/components/operations-workspace.tsx`; do not build a separate app. Own import, Rosa duplicate review, participant/donor call list, evidence and the counseling disclosure view. Make the operations flow clear, then show one note beside the exact limited funder payload with explicit counselor approval. Keep calculations, field filtering and approval checks on the server. Label fictional data and simulated delivery. Preserve the shared API contract and coordinate shell/global-style changes with the lead.

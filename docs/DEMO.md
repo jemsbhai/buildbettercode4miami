@@ -11,7 +11,7 @@ This is the target script. Rehearse against the implemented build and remove any
 - Verify the wrong-claim block, current evidence approval and export. Make sure no previous edit has left the scenario in an unexpected state.
 - Check [the backend handoff](BACKEND-HANDOFF.md) before integrating new controls. The backend passed 94 tests, the production build and 74 HTTP checks, including real report/application/follow-up calls. No new browser walkthrough was performed; rehearse each new frontend action after wiring it.
 - Keep a short local recording as an optional contingency, labeled as recorded. Do not imply it is a live execution.
-- Confirm the submission cutoff and allowed demo duration with the organizer; the event's 9 PM closing time is not a confirmed submission deadline.
+- Submit before **Sunday, November 8, 2026, 4:45 PM Eastern**, the cutoff supplied by Liam. Confirm the allowed demo duration with the organizer; the event's 9 PM closing time is separate.
 
 ## Script and actions
 

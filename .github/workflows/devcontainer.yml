@@ -1,0 +1,60 @@
+name: Development baseline
+
+on:
+  pull_request:
+  push:
+    branches: [feature/frontend-base]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcontainer-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  devcontainer:
+    name: Devcontainer (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          # Dependencies are installed in the container after its npm upgrade.
+          package-manager-cache: false
+      - name: Install pinned container tooling
+        run: |
+          npm install --global npm@12.0.2
+          npm install --global @devcontainers/cli@0.90.0
+      - name: Create devcontainer and install dependencies
+        run: devcontainer up --workspace-folder .
+      - name: Check architecture, utilities, and permissions
+        run: |
+          devcontainer exec --workspace-folder . bash -euc '
+            test "$(node -p process.arch)" = "${{ matrix.arch }}"
+            test "$(id -u)" -ne 0
+            git --version
+            git status --short
+            bash --version
+            curl --version
+            rg --version
+            less --version
+            test -w . && test -w node_modules && test -w .next
+          '
+      - name: Verify application and deterministic HTTP workflows
+        run: devcontainer exec --workspace-folder . npm run verify
+      - name: Check tracked files remain unchanged
+        run: |
+          git diff --exit-code
+          test -z "$(git ls-files --others --exclude-standard)"

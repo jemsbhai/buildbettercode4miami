@@ -1,0 +1,31 @@
+{
+  "name": "Tidepath",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/tidepath,type=bind",
+  "workspaceFolder": "/workspaces/tidepath",
+  "containerUser": "node",
+  "remoteUser": "node",
+  "updateRemoteUserUID": true,
+  "init": true,
+  "mounts": [
+    "source=tidepath-${devcontainerId}-node_modules,target=/workspaces/tidepath/node_modules,type=volume",
+    "source=tidepath-${devcontainerId}-next,target=/workspaces/tidepath/.next,type=volume"
+  ],
+  "postCreateCommand": "sudo chown node:node node_modules .next && npm ci --no-audit --no-fund",
+  "forwardPorts": [3000],
+  "appPort": [3000],
+  "portsAttributes": {
+    "3000": { "label": "Tidepath", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "remote.localPortHost": "localhost",
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  }
+}
