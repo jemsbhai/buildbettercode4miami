@@ -3,15 +3,14 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, CircleDollarSign, ClipboardCheck, HeartHandshake, LayoutDashboard, LoaderCircle, LockKeyhole, RotateCcw, ShieldCheck, Waves } from "lucide-react";
+import { ArrowUpRight, ClipboardCheck, HeartHandshake, Inbox, LoaderCircle, Pencil, RotateCcw, ShieldCheck, Waves } from "lucide-react";
 import { errorMessage } from "@/lib/client-api";
 import styles from "./workspace-shell.module.css";
 
 const routes = [
-  { href: "/", label: "Overview", icon: LayoutDashboard },
-  { href: "/inbox", label: "Inbox", icon: HeartHandshake },
-  { href: "/grants", label: "Grants & reports", icon: CircleDollarSign },
-  { href: "/counseling", label: "Counseling", icon: LockKeyhole },
+  { href: "/inbox", label: "Inbox", icon: Inbox },
+  { href: "/grants", label: "Grants & reports", icon: Pencil },
+  { href: "/counseling", label: "Counseling", icon: HeartHandshake },
 ];
 
 export type WorkspaceShellProps = {
@@ -32,7 +31,7 @@ export type WorkspaceShellProps = {
 
 export default function WorkspaceShell({ title, description, period, asOf, loading, error, onRetry, mode, liveAvailable, onModeChange, onReset, resetting, children }: WorkspaceShellProps) {
   const pathname = usePathname();
-  const active = routes.find((route) => route.href === pathname);
+  const activeLabel = routes.find((route) => route.href === pathname)?.label ?? (pathname === "/" ? "Welcome" : "");
   const [resetError, setResetError] = useState("");
   const banner = error || resetError;
   return <div className="app-shell">
@@ -45,7 +44,7 @@ export default function WorkspaceShell({ title, description, period, asOf, loadi
       <div className="sidebar-footer"><span className="avatar">TF</span><div><strong>Tidepath demo team</strong><small>Miami-Dade, Florida</small></div><ArrowUpRight size={15} /></div>
     </aside>
     <div className="main-shell">
-      <header className="topbar"><span className="topbar-crumb">Workspace <span>/</span>{active?.label}</span><span className="demo-badge"><span />SYNTHETIC DEMO</span></header>
+      <header className="topbar"><span className="topbar-crumb">Workspace <span>/</span>{activeLabel}</span><span className="demo-badge"><span />SYNTHETIC DEMO</span></header>
       <main id="main-content" tabIndex={-1}>
         <div className="page-heading"><div><span className="eyebrow">LESS ADMIN. MORE HUMAN.</span><h1>{title}</h1><p>{description}</p></div></div>
         <div className="context-bar"><div><ClipboardCheck size={16} /><strong>{period ?? (loading ? "Loading quarter" : "Quarter unavailable")}</strong><span className="context-detail">{asOf ? `Record as of ${asOf.slice(0, 10)}` : "One shared record"}</span></div><span>Fictional demo data</span><div className={styles.contextActions}><label className="mode-select">Drafting mode<select value={mode} onChange={(event) => onModeChange(event.target.value as "demo" | "live")}><option value="demo">Demo · no model call</option><option value="live" disabled={!liveAvailable}>Live · OpenAI agent{liveAvailable ? "" : " (key needed)"}</option></select></label><button className="button button-quiet reset-button" disabled={resetting || loading} onClick={() => { setResetError(""); Promise.resolve(onReset()).catch((err: unknown) => setResetError(errorMessage(err))); }}><RotateCcw size={15} className={resetting ? "spin" : ""} />Reset demo</button></div></div>

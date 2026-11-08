@@ -1,17 +1,18 @@
+import Link from "next/link";
 import { HeartHandshake, Inbox, Pencil } from "lucide-react";
 import styles from "./welcome-screen.module.css";
 
 const choices = [
-  { label: "Inbox", icon: Inbox },
-  { label: "Grants & Reports", icon: Pencil },
-  { label: "Counseling sessions", icon: HeartHandshake },
+  { href: "/inbox", label: "Inbox", icon: Inbox },
+  { href: "/grants", label: "Grants & Reports", icon: Pencil },
+  { href: "/counseling", label: "Counseling sessions", icon: HeartHandshake },
 ];
 
 export function WelcomeScreen() {
-  return <section className={styles.welcome}>
-    <h2 className={`display ${styles.heading}`}>What will we work on today?</h2>
+  return <main className={styles.welcome}>
+    <h1 className={`display ${styles.heading}`}>What will we work on today?</h1>
     <div className={styles.actions}>
-      {choices.map(({ icon: Icon, label }) => <button key={label} type="button" className={styles.button}><Icon size={22} />{label}</button>)}
+      {choices.map(({ href, icon: Icon, label }) => <Link key={label} href={href} prefetch={false} className={styles.button}><Icon size={22} />{label}</Link>)}
     </div>
-  </section>;
+  </main>;
 }
