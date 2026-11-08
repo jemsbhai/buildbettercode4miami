@@ -1,5 +1,7 @@
 # Team handoff
 
+**Frontend update, November 7:** use the [frontend work plan](FRONTEND-WORK-PLAN.md) for Liam/A and Robby/B assignments, the four-route structure and prop-driven components. It supersedes the original paths and frontend shared-file ownership below. Reports now belong inside `/grants`; FE-03 is Done: pages pass backend callbacks as props, report documents are downloaded without browser editing, and feature state handling is refined during implementation. The older document-editor requirements below are superseded. Existing product acceptance and backend coordination requirements remain.
+
 Repository: https://github.com/jemsbhai/buildbettercode4miami
 
 Team size is **four**. Existing assignments below cover the lead and two frontend teammates; the fourth role remains to be recorded. See [project memory](PROJECT-CONTEXT.md) for shared dev-container requirements. **Final submission: Sunday, November 8, 2026, 4:45 PM Eastern**, supplied by Liam; the event continues until 9 PM.

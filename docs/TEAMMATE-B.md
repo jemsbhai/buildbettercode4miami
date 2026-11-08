@@ -1,5 +1,7 @@
 # Teammate B: trusted reports and approval
 
+**November 7 frontend agreement:** Robby (Roberto Beltran) owns B. The [frontend work plan](FRONTEND-WORK-PLAN.md) supersedes this document's original component paths and parent-request wiring: reports, applications and ledger live inside `/grants`, views receive props, and pages own view data loading. FE-03 is now Done: pages pass backend callbacks as props; reporting documents are downloadable, with no browser document editing. Older editor/correct-save requirements below are superseded; validation still applies. Feature state handling is worked out during implementation. Retain the acceptance requirements below and use the [latest backend handoff](BACKEND-HANDOFF.md) for current contracts.
+
 ## Copy-paste assignment
 
 > Work in the existing Tidepath Next.js + TypeScript application on Node.js 22+. Enhance the functional base in `src/components/report-workspace.tsx`; do not build a separate app. Own quarterly reports, the one-funder application and category ledger, structured claims, evidence, draft editing, validation, approval, export and recorded run history. Demonstrate a wrong claim blocking approval, a complete application answer staying within its word limit, and category spending using the funder's own year. Make pending/approved/stale state obvious and use server calculations throughout.
