@@ -10,8 +10,12 @@ export default function EvidenceDrawer({ title, sources, onClose }: {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = ref.current;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialog?.showModal();
-    return () => { dialog?.close(); };
+    return () => {
+      dialog?.close();
+      if (trigger?.isConnected) trigger.focus();
+    };
   }, []);
   const rows = sources;
   return <dialog ref={ref} className="evidence-drawer" aria-labelledby="evidence-title" onCancel={onClose}>
