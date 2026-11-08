@@ -44,6 +44,6 @@ Adapt the reusable development amenities. Its Bun install command, PostgreSQL de
 - The [organizer listing](https://luma.com/codexmiami), checked November 7, identifies the DevDay Exchange Community Hackathon: Miami at The LAB Miami, 2750 NW 3rd Ave #24. Published hours are **noon–9 PM Eastern on both November 7 and November 8**. The event close is distinct from the submission deadline.
 - The listing names Codex, OpenAI API and OpenAI Agents SDK under acceptance criteria. The [challenge overview](sources/overview.md) records the public GitHub repository and MIT or Apache 2.0 licensing requirement.
 - Judging rubric, submission form, allowed presentation duration and treatment of combined challenge entries remain unconfirmed here. The four-minute demo script is a team target, not a verified organizer limit.
-- Planning recommendation: freeze features by **3:15 PM Eastern Sunday** to leave 90 minutes for fresh setup, verification, rehearsal and submission before 4:45 PM. This is a proposed buffer, not another organizer deadline.
+- Liam's updated target on November 8: freeze features/code around **3:30 PM Eastern Sunday**, prioritizing feature delivery and usability. Deployed authentication is deferred; hosting remains undecided between Vercel and available AWS resources. See [FE-01 second-pass notes](FE-01-SECOND-PASS.md) for the FE-02 comparison and deferred deployment considerations.
 
 See [decisions](DECISIONS.md), [build plan](BUILD-PLAN.md) and [team handoff](TEAM-HANDOFF.md) for product scope and existing ownership.
