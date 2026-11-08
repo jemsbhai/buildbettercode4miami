@@ -6,6 +6,12 @@ Built for the [DevDay Exchange Miami nonprofit challenges](https://docs.google.c
 
 Public repository: [jemsbhai/buildbettercode4miami](https://github.com/jemsbhai/buildbettercode4miami). Start from the default branch, `codex/tidepath-mvp`. Contributors without write access can fork the repository and submit pull requests back to that branch.
 
+## Tidepath: local Chrome extension and multi-workbook review
+
+The new [local Sheets product](docs/LOCAL-SHEETS.md) scans explicitly selected workbooks and their eligible tabs, reviews duplicates/identity conflicts and data-quality issues, and creates verified correction copies after approval. It uses a user-run companion with no owner-funded hosting or inference dependency. Deterministic tools work without a key; optional advice uses the user's own OpenAI key entered through a hidden local terminal prompt.
+
+Follow [loading and onboarding](docs/EXTENSION.md) to build the local package, preserving the OAuth client option when rebuilding a configured installation. The package includes a complete fictional rehearsal; real Google use requires an authorized Chrome OAuth configuration. See [supported rules and limits](docs/RECONCILIATION-RULES.md). Original workbooks are never modified. [Live acceptance](docs/EXTENSION-LIVE-ACCEPTANCE.md) verified the unpacked extension with the local Google test project and disposable workbooks. **There is no public install URL for this extension.** See [release readiness](docs/EXTENSION-RELEASE-READINESS.md) for the existing LaserFocus name collision and remaining store, Google verification and companion requirements. The surrounding application remains Tidepath; older Apps Script evidence below applies only to that separate integration.
+
 ## Run locally
 
 The primary workflow is **VS Code → Dev Containers: Reopen in Container**, with Docker running in Linux-container mode. The container installs dependencies automatically; then run `npm run dev` and open the forwarded port 3000. No API key is needed for demo mode.

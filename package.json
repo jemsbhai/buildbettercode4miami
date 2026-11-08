@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node scripts/test.mjs",
     "verify": "node scripts/verify.mjs",
-    "sheets:bridge": "node --env-file-if-exists=.env.local --import tsx scripts/sheets-bridge.ts"
+    "sheets:bridge": "node --env-file-if-exists=.env.local --import tsx scripts/sheets-bridge.ts",
+    "sheets:local": "node --import tsx scripts/sheets-local.ts",
+    "extension:package": "node scripts/package-extension.mjs"
   },
   "dependencies": {
     "next": "16.4.5",

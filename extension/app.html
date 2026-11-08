@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tidepath · Sheets review</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+  <header><div><p class="eyebrow">TIDEPATH / LOCAL WORKSPACE</p><h1>Clearer data. You stay in control.</h1><p>Review selected Google Sheets, understand the findings, and create checked correction copies.</p></div><span id="connection-badge" class="badge">Not connected</span></header>
+  <main>
+    <div id="notice" role="status" aria-live="polite" tabindex="-1">Connect your local companion to begin. No spreadsheet data has been read.</div>
+    <section aria-labelledby="connect-title"><div class="section-head"><h2 id="connect-title"><span class="step">1</span> Connect on this computer</h2><button id="refresh" class="secondary">Refresh status</button></div>
+      <p>The deterministic tools run on your computer without a model key, subscription, or owner-funded server. The local companion must remain open.</p>
+      <details id="setup" open><summary>First-time setup</summary><ol><li>Copy this extension ID: <code id="extension-id">Loading…</code></li><li>In the source folder, start <code id="start-command">npm run sheets:local -- --extension-id=YOUR_EXTENSION_ID</code>. For fictional fixtures, add <code>--demo</code>.</li><li>Enter the generated connection token below. It stays in this browser session, and is cleared when the extension reloads or the browser restarts.</li></ol></details>
+      <form id="pair-form"><label for="pair-token">Local connection token</label><div class="inline"><input id="pair-token" type="password" autocomplete="off" spellcheck="false" placeholder="Token from your local companion" required minlength="32"><button type="submit">Connect local companion</button><button type="button" id="unpair" class="secondary">Forget connection</button></div></form>
+      <p id="status-text" class="muted"></p>
+      <div class="inline"><button id="google-connect" disabled>Connect Google account</button><button id="google-disconnect" class="secondary" disabled>Disconnect Google</button></div>
+      <p id="oauth-note" class="small">Google authorization requires your own configured OAuth client. No Google token or OpenAI key is included in this package.</p>
+    </section>
+
+    <section aria-labelledby="scope-title"><div class="section-head"><h2 id="scope-title"><span class="step">2</span> Choose the scope</h2><button id="discover" disabled>Find accessible spreadsheets</button></div>
+      <p>Discovery reads spreadsheet names and IDs. A scan reads only the workbooks you select, including their eligible tabs. Known private counseling tabs and columns are excluded; labels cannot identify every sensitive cell.</p>
+      <label class="check"><input id="broad-scan" type="checkbox">I explicitly allow this operation to scan across multiple selected workbooks.</label>
+      <div class="inline"><button id="select-all" class="secondary" disabled>Select all listed</button><button id="select-none" class="secondary" disabled>Clear selection</button><span id="selected-count" class="muted">0 selected</span></div>
+      <div id="workbooks" class="workbooks"><p class="muted">Find spreadsheets after connecting. Nothing is selected automatically.</p></div>
+      <label class="check"><input id="privacy-consent" type="checkbox">I have permission to read these workbooks and confirm the eligible tabs contain general records suitable for this scan. I will exclude private counseling or other confidential data before continuing.</label>
+      <div class="inline"><button id="scan" disabled>Scan selected workbooks</button><span class="small">AI is off. No data is sent to a model.</span></div>
+    </section>
+
+    <section id="report-section" aria-labelledby="report-title" hidden><div class="section-head"><h2 id="report-title"><span class="step">3</span> Understand and review</h2><button id="download-report" class="secondary">Download findings JSON</button></div>
+      <div id="metrics" class="metrics"></div><div id="scope-summary"></div>
+      <details id="mapping-details"><summary>Required before correction: confirm column mappings</summary><p>Review inferred mappings, required fields, amount units and dates. Adjust them as needed, then confirm and rescan. Column numbers refer to the original tab. Ambiguous dates require an explicit interpretation.</p><div id="mappings"></div><button id="rescan">Confirm mappings and rescan</button></details>
+      <div class="section-head"><h3>Findings</h3><label class="check compact"><input id="safe-all" type="checkbox">Select all proposed corrections for review</label></div>
+      <p class="small">Duplicate gifts and conflicting identities require a person’s decision. Tidepath keeps every gift row and its cents. Proposed identity corrections include every matching donor row in this scope; selecting one selects the full group for your review.</p>
+      <div id="findings"></div><button id="build-plan">Review selected corrections</button>
+    </section>
+
+    <section id="plan-section" aria-labelledby="plan-title" hidden><h2 id="plan-title"><span class="step">4</span> Approve the exact correction copies</h2>
+      <p>Only the checked changes below will be applied to new data workbooks. The source workbooks remain intact. Copies exclude private tabs/columns and do not reproduce formatting, charts, sharing or other workbook features. Formula-bearing source tabs cannot be copied by this version.</p>
+      <div id="plan"></div>
+      <label class="check"><input id="approve-copy" type="checkbox">I reviewed these exact changes and approve creation of the listed correction copies.</label>
+      <button id="apply">Create and verify correction copies</button><p class="small">The companion rechecks source versions before copying and verifies new values. If a source changed, rescan and review again.</p>
+      <div id="operation-result" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="ai-title"><div class="section-head"><h2 id="ai-title">Optional AI advice · off by default</h2><span id="ai-badge" class="badge">No key</span></div>
+      <p>For optional advice, restart the companion with <code>--ask-openai-key</code> and enter your own OpenAI API key at its hidden terminal prompt. The key never enters this extension or a web page and lasts only in the companion’s memory.</p>
+      <p><strong>Any API use is billed to your OpenAI account.</strong> This is not free inference. Calls and tokens are bounded, but these limits do not guarantee an exact bill. Advice does not approve or apply changes.</p>
+      <div class="inline"><button id="preview-ai" class="secondary" disabled>Preview exactly what would leave this computer</button><button id="clear-ai" class="secondary" disabled>Remove local API key</button></div>
+      <div id="ai-review" hidden><p id="ai-disclosure"></p><details open><summary>Exact outgoing request</summary><pre id="ai-payload"></pre></details><label class="check"><input id="approve-ai" type="checkbox">Enable AI for this one request. I approve this exact payload being sent to OpenAI and accept charges on my account.</label><button id="run-ai">Send this request using my key</button></div>
+      <div id="ai-result" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="history-title"><div class="section-head"><h2 id="history-title">History and recovery</h2><button id="history-refresh" class="secondary" disabled>Refresh history</button></div>
+      <p>Correction copies are independent files. To recover, keep using the unchanged originals; inspect any incomplete copy before manually removing it in Google Drive. An interrupted creation is never blindly repeated.</p>
+      <button id="retry-pending" class="secondary" hidden>Recover last approved request with the same ID</button><div id="pending-jobs"></div><div id="history"><p class="muted">No history loaded.</p></div>
+    </section>
+  </main><footer>Local processing · Explicit scope · Human review · Original records preserved</footer>
+  <script type="module" src="app.mjs"></script>
+</body></html>

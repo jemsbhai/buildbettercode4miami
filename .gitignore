@@ -6,5 +6,6 @@ node_modules/
 *.tsbuildinfo
 *.log
 out/
+outputs/tidepath-live-acceptance-20261108/
 .clasp.json
 .clasprc.json
