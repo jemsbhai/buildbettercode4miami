@@ -15,6 +15,7 @@ export default function Page() {
   const [followupName, setFollowupName] = useState("");
   const [deliveryNotice, setDeliveryNotice] = useState("");
   const [approvePulse, setApprovePulse] = useState(false);
+  const [approveNotice, setApproveNotice] = useState("");
   const followup = dashboard?.state.drafts.find((draft) => draft.id === selectedFollowupId && draft.kind === "followup");
   return <WorkspaceShell title="Bring the records together." description="See the records and follow-ups waiting for review, then draft and approve the next step." {...shell}>
     {dashboard ? <OperationsWorkspace
@@ -28,14 +29,15 @@ export default function Page() {
       onEvidence={onEvidence}
       onDrafted={(draft, personName) => { setSelectedFollowupId(draft.id); setFollowupName(personName ?? ""); }}
     /> : null}
-    {dashboard && followup ? <Modal title={followupName ? `${followup.title}: ${followupName}` : "Follow-up review"} pulse={approvePulse} onClose={() => setSelectedFollowupId(null)}>
+    {dashboard && followup ? <Modal title={followupName ? `${followup.title}: ${followupName}` : "Follow-up review"} pulse={approvePulse} onClose={() => { setSelectedFollowupId(null); setApproveNotice(""); }}>
+      {approveNotice ? <ToastNotice message={approveNotice} autoDismiss={false} onDismiss={() => setApproveNotice("")} /> : null}
       <DraftEditor
         draft={followup}
         dashboard={dashboard}
         onError={onError}
         onEvidence={onEvidence}
         onSaveDraft={saveDraft}
-        onApproveDraft={async (draftId, revision) => { const draft = await approveDraft(draftId, revision); setApprovePulse(true); setTimeout(() => setApprovePulse(false), 850); return draft; }}
+        onApproveDraft={async (draftId, revision) => { const draft = await approveDraft(draftId, revision); setApprovePulse(true); setTimeout(() => setApprovePulse(false), 850); setApproveNotice("Approved. This exact revision is ready to export."); return draft; }}
         onSendDraft={async (draftId, revision) => {
           await sendDraft(draftId, revision);
           setSelectedFollowupId(null);
