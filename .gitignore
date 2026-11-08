@@ -7,5 +7,6 @@ node_modules/
 *.log
 out/
 outputs/tidepath-live-acceptance-20261108/
+outputs/chrome-web-store/
 .clasp.json
 .clasprc.json

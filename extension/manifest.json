@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Tidepath — local Sheets review",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Review selected Google Sheets locally and create verified correction copies. Optional AI uses your own local API key.",
   "minimum_chrome_version": "114",
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
   "permissions": ["storage", "identity"],
   "host_permissions": ["http://127.0.0.1/*"],
   "background": { "service_worker": "service-worker.mjs", "type": "module" },
-  "action": { "default_title": "Open Tidepath" },
+  "action": { "default_title": "Open Tidepath", "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" } },
   "options_ui": { "page": "app.html", "open_in_tab": true },
   "content_security_policy": {
     "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; connect-src http://127.0.0.1:4318; img-src 'self' data:; style-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'"

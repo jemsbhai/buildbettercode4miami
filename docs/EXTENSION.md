@@ -4,6 +4,8 @@ This Manifest V3 extension reviews explicitly selected Google Sheets through a c
 
 The extension retains the name **Tidepath**, as requested after an unrelated store product named LaserFocus was found. There is no public install URL for this extension. See [distribution readiness](EXTENSION-RELEASE-READINESS.md) for listing evidence and the remaining store, OAuth and companion requirements. Existing folder and protocol names are unchanged.
 
+Store preparation is now authorized and underway. The draft item is `bdojcligphldnmdchmlhgibhlldgflcd`; a separate OAuth client is bound to that item. Draft upload, configured packaging, OAuth verification and public store publication are separate milestones. See the [release record](CHROME-RELEASE-2026-11-08.md) for the verified status. Public users of a future configured store release will not need to create their own OAuth client; the personal source-installation instructions below remain available for local development.
+
 The no-key mode performs deterministic schema checks, identity/duplicate review, date/number/currency validation and exact-money checks. Optional OpenAI advice uses a key supplied by the user to the local terminal and requires approval of an exact outgoing request. OpenAI usage is billed to that user's account; BYOK does not mean free inference.
 
 ## Build and load
@@ -17,6 +19,14 @@ npm run extension:package
 This produces `out/tidepath-extension/` and `out/tidepath-extension.zip`. The ZIP contains only extension assets, a manifest and loading instructions. It contains no secrets, private spreadsheet data, environment file or `node_modules`. Default packaging omits OAuth configuration; packaging with `--oauth-client-id` embeds that public client ID and the required scopes. A SHA-256 digest is printed.
 
 For an already configured local installation, rerun packaging with the same `--oauth-client-id` value. Running without that option removes OAuth configuration from the output manifest. Keep the unpacked folder in place when updating; reload it in Chrome and confirm the same extension ID. Reloading clears the session pairing token, so reconnect to a running companion before use.
+
+Prepare a separate release without replacing an existing local installation:
+
+```sh
+npm run extension:package -- --output-name tidepath-extension-store-release --oauth-client-id YOUR_STORE_CLIENT_ID.apps.googleusercontent.com
+```
+
+This writes `out/tidepath-extension-store-release/` and its ZIP. The client must match the actual store item ID. A configured ZIP does not establish Google approval or public availability. Release packages include Tidepath icons and setup/privacy links; the companion remains a separate source installation.
 
 1. Extract the ZIP into a fixed folder, or use `out/tidepath-extension/` directly.
 2. In Chrome open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select that folder.
