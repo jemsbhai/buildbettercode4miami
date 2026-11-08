@@ -15,7 +15,8 @@
 @media(max-width:760px){.sidebar nav{gap:3px}.nav-item{font-size:0;padding:9px;gap:0}.nav-item svg{height:18px;width:18px}.nav-count{margin-left:4px;font-size:8px}.attendance-panel{padding:20px 17px}.attendance-panel form{gap:9px}.attendance-panel label:first-child{flex-basis:100%}.attendance-panel label:nth-child(2),.attendance-panel label:nth-child(3){flex:1}.attendance-panel input{max-width:none;width:100%}.attendance-panel select{width:100%}.attendance-panel form>button{width:100%;margin-top:5px}.grant-intro p{font-size:11px}.grant-card .panel-heading h2{font-size:17px}.grant-calendar{padding:16px 17px;font-size:9px}.grant-calendar strong{font-size:9px}.grant-calendar>span:first-child{flex-wrap:wrap;gap:5px}.category-grid{padding:0 17px 20px;gap:9px}.category-card{padding:12px}.category-card h3{font-size:11px}.category-card>strong{font-size:17px}.category-card>strong>span{font-size:8px}.grant-exceptions{grid-template-columns:1fr;padding:0 17px 20px;gap:18px}.application-brief{padding:20px 17px}.application-brief h3{font-size:14px}.application-brief .eyebrow{font-size:8px}.application-brief .button{width:100%}.application-context p{font-size:11px}.note-comparison{gap:17px}.note-comparison .panel-heading h2{font-size:17px}.note-body{padding:18px}.note-body .field-hint{font-size:10px}.note-body textarea{font-size:12px}.access-events{padding:0 18px 10px}.access-events article{gap:8px}.access-events time{font-size:7px}.access-events p{font-size:9px}.session-list strong{font-size:11px}.session-list small{font-size:9px}.session-date{font-size:9px}.session-list .pill{font-size:7px}}
 
 /* Readable working text at every breakpoint; small overlines remain decorative. */
-:root { --muted: #657361; }
+:root { --muted: #657361; --font-display: 'Cormorant Garamond', Georgia, serif; }
+.display { font-family: var(--font-display); font-style: italic; }
 .button, .button-small, .text-button, .claim-card .text-button,
 .category-footer .text-button, .run-events .text-button,
 .queue-actions .text-button, .queue-actions .button,
@@ -91,4 +92,16 @@
   .source-list { max-height: 350px; }
   .evidence-row dt { min-width: 100px; }
   .grant-card .panel-heading .text-button { margin-left: 50px; }
+}
+
+/* Welcome screen: italic display-serif prompt over three square, green-outlined choices. */
+.welcome { display: flex; flex-direction: column; align-items: center; gap: 36px; padding: 64px 20px; text-align: center; }
+.welcome-heading { font-size: 58px; font-weight: 400; letter-spacing: 0; line-height: 1.2; color: var(--teal-dark); }
+.welcome-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 520px; }
+.welcome-button { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 56px; padding: 0 24px; background: var(--paper); border: 2px solid var(--teal); border-radius: 0; color: var(--teal); font-family: 'Manrope', 'DM Sans', sans-serif; font-size: 16px; font-weight: 750; letter-spacing: -0.3px; }
+.welcome-button:hover { background: var(--paper); border-color: var(--teal-dark); color: var(--teal-dark); }
+@media (max-width: 760px) {
+  .welcome { padding: 44px 16px; gap: 30px; }
+  .welcome-heading { font-size: 42px; }
+  .welcome-button { min-height: 52px; font-size: 15px; }
 }

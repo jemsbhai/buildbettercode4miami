@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "@fontsource/cormorant-garamond/400-italic.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
