@@ -4,6 +4,7 @@ import { useState } from "react";
 import WorkspaceShell from "@/components/layout/workspace-shell";
 import EvidenceDrawer from "@/components/shared/evidence/evidence-drawer";
 import DraftEditor from "@/components/shared/drafts/draft-editor";
+import Modal from "@/components/shared/layout/modal";
 import { OperationsWorkspace } from "@/components/operations-workspace";
 import useWorkspaceData from "@/app/_hooks/use-workspace-data";
 
@@ -23,15 +24,17 @@ export default function Page() {
       onEvidence={onEvidence}
       onDrafted={(draft) => setSelectedFollowupId(draft.id)}
     /> : null}
-    {dashboard && followup ? <DraftEditor
-      draft={followup}
-      dashboard={dashboard}
-      onError={onError}
-      onEvidence={onEvidence}
-      onSaveDraft={saveDraft}
-      onApproveDraft={approveDraft}
-      onSendDraft={sendDraft}
-    /> : null}
+    {dashboard && followup ? <Modal title="Follow-up review" onClose={() => setSelectedFollowupId(null)}>
+      <DraftEditor
+        draft={followup}
+        dashboard={dashboard}
+        onError={onError}
+        onEvidence={onEvidence}
+        onSaveDraft={saveDraft}
+        onApproveDraft={approveDraft}
+        onSendDraft={sendDraft}
+      />
+    </Modal> : null}
     {evidence ? <EvidenceDrawer {...evidence} onClose={onCloseEvidence} /> : null}
   </WorkspaceShell>;
 }

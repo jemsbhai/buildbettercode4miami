@@ -5,6 +5,7 @@ import { ArrowRight, Check, ChevronDown, FileInput, FileText, GitMerge, Heart, L
 import type { Dashboard, Draft } from "@/lib/types";
 import { errorMessage } from "@/lib/client-api";
 import { formatMetric } from "@/lib/format";
+import ToastNotice from "@/components/shared/notice/toast-notice";
 
 type Props = {
   dashboard: Dashboard;
@@ -70,7 +71,7 @@ export function OperationsWorkspace({ dashboard, onMerge, onImport, onSaveAttend
       <span className="metric-label">{metric.label}<ArrowRight size={15} /></span><strong>{formatMetric(metric.value, metric.unit)}</strong><span className="metric-foot"><span className={`metric-dot dot-${index % 3}`} />{metric.unit === "USD" ? "In this quarter" : metric.unit} <span>· View evidence</span></span>
     </button>)}</section>
 
-    {notice ? <div className="notice notice-success" role="status"><Check size={17} />{notice}</div> : null}
+    {notice ? <ToastNotice message={notice} onDismiss={() => setNotice("")} /> : null}
 
     <section className="panel merge-panel" aria-labelledby="merge-title">
       <div className="panel-heading"><div className="section-title"><span className="section-icon amber"><GitMerge size={19} /></span><div><h2 id="merge-title">A familiar name, a few different records</h2><p>Review the evidence before bringing someone’s history together.</p></div></div><span className={`pill ${pending.length ? "pill-amber" : "pill-green"}`}>{pending.length ? `${pending.length} to review` : "All reviewed"}</span></div>
