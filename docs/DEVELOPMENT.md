@@ -1,6 +1,23 @@
 # Shared development environment
 
-`feature/frontend-base` establishes one root workspace for the team. Use exactly **Node 24.19.0** and **npm 12.0.2** in both native and container development. Direct dependencies are pinned to the existing lockfile versions; installing is not an upgrade operation.
+`stable` is the shared baseline on Liam's fork, including the development environment originally established on `feature/frontend-base`. Use exactly **Node 24.19.0** and **npm 12.0.2** in both native and container development. Direct dependencies are pinned to the existing lockfile versions; installing is not an upgrade operation.
+
+## Branch workflow
+
+- **Liam's fork:** `liamstojanovic/buildbettercode4miami`, with `stable` as its default branch and shared, verified baseline. Start new work from it; unfinished work stays on feature branches. The initial `stable` starts from `feature/fe-01` at `7661f70`, plus the branch-workflow and local-data documentation changes. It does not include the separate work on `feature/fe-02`.
+- **Integration:** open pull requests from feature branches to the fork's `stable`. Run `npm run verify` and check the affected UI flows before merging. The **Development baseline** workflow runs on pull requests and pushes to `stable`, checking the actual devcontainer on Linux ARM64 and x86-64 runners. This documents the team process; it does not itself enforce branch protection.
+- **Team upstream:** `jemsbhai/buildbettercode4miami:codex/tidepath-mvp` remains the upstream integration target. Check the repository and base branch when opening cross-fork pull requests. Changing the fork's default branch preserves the GitHub fork relationship, Git history and existing remote URLs.
+
+For this checkout, `origin` is Liam's fork and `upstream` is the team repository. With a clean working tree, update your baseline and create a feature branch:
+
+```sh
+git fetch origin
+git switch stable
+git pull --ff-only origin stable
+git switch -c feature/your-change
+```
+
+For an existing clone without a local `stable`, use `git switch --track origin/stable` after fetching. Existing feature branches remain available; merge `origin/stable` into an in-progress branch when it needs the new baseline.
 
 ## VS Code devcontainer (primary workflow)
 
@@ -11,7 +28,7 @@ Host prerequisites:
 - On Windows, enable WSL2 and Docker Desktop's WSL integration. Prefer cloning into the WSL Linux filesystem and opening the folder through VS Code's WSL extension to improve file watching and filesystem performance.
 - Git to clone the repository, or use VS Code's **Clone Repository in Container Volume** command. Node and npm are supplied inside the container.
 
-Open your clone in VS Code, switch to `feature/frontend-base`, then run **Dev Containers: Reopen in Container** from the Command Palette. The first build downloads the image and tools, creates isolated volumes, and runs `npm ci`. Later container creation repeats the installation against the lockfile.
+Open your clone in VS Code, switch to `stable`, then run **Dev Containers: Reopen in Container** from the Command Palette. The first build downloads the image and tools, creates isolated volumes, and runs `npm ci`. Later container creation repeats the installation against the lockfile.
 
 In the container terminal:
 
@@ -117,6 +134,22 @@ Source is shared with the host. Container `node_modules` and `.next` use workspa
 
 Keep platform-specific optional lockfile entries. Regenerate dependency changes from a complete lockfile and check both architecture jobs; never remove other platforms' packages to make a local installation look smaller.
 
+## Local runtime data (`.data/`) and cleanup
+
+`.data/` is generated, Git-ignored application storage, not a dependency directory or build cache. It is created automatically when needed; a fresh clone does not need a copy to install, build or start the fictional demo.
+
+| Default path | Purpose |
+| --- | --- |
+| `.data/state.json` | Web-app state: seeded records, imported gifts, edits, drafts, approvals, agent runs and audit history. `src/lib/store.ts` creates the deterministic fictional seed on the first state read if the file is absent, and saves changes using atomic file replacement. `TIDEPATH_STATE_FILE` overrides this path. |
+| `.data/sheets/workspaces/` | Separate Google Sheets workbook sessions, with hashed spreadsheet IDs as filenames. These do not share the web app's state. |
+| `.data/sheets/bridge-token.txt` | Local Sheets bridge connection token, generated on bridge startup unless `TIDEPATH_SHEETS_TOKEN` supplies one. Treat it as a credential; do not commit or share it. `TIDEPATH_SHEETS_DATA` overrides the entire Sheets data directory. |
+
+The devcontainer bind-mounts the checkout, so `.data/` is shared with the host and survives container rebuilds. It is not stored in the isolated `node_modules` or `.next` volumes. Native and container app sessions use the same default state file; the file store is designed for one Node process, so stop one server before starting another against that file.
+
+For cleanup, stop the app and Sheets bridge first. Keep `.data/` if you want to preserve local work, or back it up before removing it. Deleting it discards saved web-app and workbook state; the next app state read recreates the fictional seed. The bridge recreates its storage on startup and generates a new token if neither a token file nor an environment token exists, so update the sidebar connection if the token changes. For just a fresh web-app scenario, use **Reset demo** instead; it restores the seed without removing Sheets storage. See the [Sheets guide](GOOGLE-SHEETS.md) for bridge setup and session behavior.
+
+`npm ci` and container rebuilds do not reset this data. `npm run verify` uses disposable state outside the checkout and leaves your saved demo untouched.
+
 ## Validation
 
 From a native or container terminal:
@@ -134,6 +167,6 @@ npx --yes @devcontainers/cli@0.90.0 up --workspace-folder .
 npx --yes @devcontainers/cli@0.90.0 exec --workspace-folder . npm run verify
 ```
 
-The GitHub **Development baseline** workflow uses that CLI to create the actual devcontainer and verify it on native Linux ARM64 and x86-64 runners. It also checks architecture, non-root execution, utilities, writable directories, and that validation leaves tracked files unchanged. It runs on pull requests, pushes to `feature/frontend-base`, and manual dispatch. Checks require no repository secrets or live model calls.
+The GitHub **Development baseline** workflow uses that CLI to create the actual devcontainer and verify it on native Linux ARM64 and x86-64 runners. It also checks architecture, non-root execution, utilities, writable directories, and that validation leaves tracked files unchanged. It runs on pull requests, pushes to `stable`, and manual dispatch. Checks require no repository secrets or live model calls.
 
 When recording results, distinguish native host checks, native Linux containers, emulated containers, hosted CI and interactive VS Code testing. A successful image build or manifest inspection alone does not prove application compatibility. See [verification records](VERIFICATION.md) for the evidence collected so far.
