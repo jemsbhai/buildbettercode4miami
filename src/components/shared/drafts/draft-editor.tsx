@@ -9,6 +9,7 @@ import { formatMetric } from "@/lib/format";
 export type DraftEditorProps = {
   draft: Draft;
   dashboard: Dashboard;
+  subject?: string;
   onError: (message: string) => void;
   onEvidence: (ids: string[], title: string) => void;
   onSaveDraft: (draftId: string, revision: number, narrative: string, claims: Claim[]) => Promise<Draft>;
@@ -16,7 +17,7 @@ export type DraftEditorProps = {
   onSendDraft: (draftId: string, revision: number) => Promise<void>;
 };
 
-export default function DraftEditor({ draft, dashboard, onError, onEvidence, onSaveDraft, onApproveDraft, onSendDraft }: DraftEditorProps) {
+export default function DraftEditor({ draft, dashboard, subject, onError, onEvidence, onSaveDraft, onApproveDraft, onSendDraft }: DraftEditorProps) {
   const [narrative, setNarrative] = useState(draft.narrative);
   const [claims, setClaims] = useState<Array<{ metricId: string; value: string }>>(() => draft.claims.map((claim) => ({ ...claim, value: String(claim.value) })));
   const [busy, setBusy] = useState<"save" | "approve" | "send" | null>(null);
@@ -63,7 +64,7 @@ export default function DraftEditor({ draft, dashboard, onError, onEvidence, onS
   }
 
   return <section className="panel editor-panel" aria-labelledby="draft-title">
-    <div className="panel-heading"><div><span className="eyebrow">{draft.kind === "report" ? "QUARTERLY REPORT" : draft.kind === "application" ? "GRANT APPLICATION" : "FOLLOW-UP DRAFT"}</span><h2 id="draft-title">{draft.title}</h2></div><span className={`pill ${draft.status === "approved" && !dirty && !stale ? "pill-green" : "pill-amber"}`}>{dirty ? "Unsaved edits" : stale ? "Record changed" : draft.status === "approved" ? "Approved" : "Needs your review"}</span></div>
+    <div className="panel-heading"><div><span className="eyebrow">{draft.kind === "report" ? "QUARTERLY REPORT" : draft.kind === "application" ? "GRANT APPLICATION" : "FOLLOW-UP DRAFT"}</span><h2 id="draft-title">{draft.title}{subject ? `: ${subject}` : ""}</h2></div><span className={`pill ${draft.status === "approved" && !dirty && !stale ? "pill-green" : "pill-amber"}`}>{dirty ? "Unsaved edits" : stale ? "Record changed" : draft.status === "approved" ? "Approved" : "Needs your review"}</span></div>
     <div className="editor-body">
       <div className="draft-meta"><span>{draft.mode === "live" ? "Drafted with the OpenAI agent" : "Deterministic demo template · no model call"}</span><span>Revision {draft.revision}</span></div>
       {stale ? <div className="notice notice-warning"><AlertCircle size={18} /><span>The underlying record changed. Generate a fresh draft before approval.</span></div> : null}

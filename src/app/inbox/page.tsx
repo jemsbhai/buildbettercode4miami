@@ -29,11 +29,12 @@ export default function Page() {
       onEvidence={onEvidence}
       onDrafted={(draft, personName) => { setSelectedFollowupId(draft.id); setFollowupName(personName ?? ""); }}
     /> : null}
-    {dashboard && followup ? <Modal title={followupName ? `${followup.title}: ${followupName}` : "Follow-up review"} pulse={approvePulse} onClose={() => { setSelectedFollowupId(null); setApproveNotice(""); }}>
+    {dashboard && followup ? <Modal title="Follow-up review" pulse={approvePulse} onClose={() => { setSelectedFollowupId(null); setApproveNotice(""); }}>
       {approveNotice ? <ToastNotice message={approveNotice} autoDismiss={false} onDismiss={() => setApproveNotice("")} /> : null}
       <DraftEditor
         draft={followup}
         dashboard={dashboard}
+        subject={followupName}
         onError={onError}
         onEvidence={onEvidence}
         onSaveDraft={saveDraft}

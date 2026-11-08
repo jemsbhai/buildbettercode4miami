@@ -32,9 +32,9 @@ export default function Page() {
       <ReportWorkspace dashboard={dashboard} kinds={["report"]} selectedDraftId={selectedDraftId} onSelectDraft={(id) => { setSelectedDraftId(id); setReportModalId(id); }} onGenerateReport={async () => { const draft = await generateReport(); setReportModalId(draft.id); return draft; }} onError={onError} onEvidence={onEvidence} />
       <GrantsWorkspace dashboard={dashboard} onGenerateApplication={generateApplication} onAddExpense={addExpense} onError={onError} onEvidence={onEvidence} onDrafted={(draft) => setApplicationDraftId(draft.id)} />
     </div> : null}
-    {dashboard && applicationDraft ? <Modal title={applicationGrant ? `Application review: ${applicationGrant.name}` : "Application review"} pulse={approvePulse} onClose={() => { setApplicationDraftId(null); setApproveNotice(""); }}>
+    {dashboard && applicationDraft ? <Modal title="Application review" pulse={approvePulse} onClose={() => { setApplicationDraftId(null); setApproveNotice(""); }}>
       {approveNotice ? <ToastNotice message={approveNotice} autoDismiss={false} onDismiss={() => setApproveNotice("")} /> : null}
-      <DraftEditor draft={applicationDraft} dashboard={dashboard} onError={onError} onEvidence={onEvidence} onSaveDraft={saveDraft} onApproveDraft={approveWithPulse} onSendDraft={sendDraft} />
+      <DraftEditor draft={applicationDraft} dashboard={dashboard} subject={applicationGrant?.name} onError={onError} onEvidence={onEvidence} onSaveDraft={saveDraft} onApproveDraft={approveWithPulse} onSendDraft={sendDraft} />
     </Modal> : null}
     {dashboard && reportDraft ? <Modal title="Report review" pulse={approvePulse} onClose={() => { setReportModalId(null); setApproveNotice(""); }}>
       {approveNotice ? <ToastNotice message={approveNotice} autoDismiss={false} onDismiss={() => setApproveNotice("")} /> : null}
