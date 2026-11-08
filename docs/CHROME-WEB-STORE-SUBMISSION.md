@@ -1,37 +1,39 @@
 # Tidepath Chrome Web Store submission package
 
-Prepared November 8, 2026 against extension/companion source commit `ee829e37a01c054d794204890a7d2a1e28a66980`. The user has authorized the remaining Chrome Web Store publishing work and reports completing publisher registration. This document supplies reviewable listing and disclosure text; current draft milestones are recorded below, without claiming Google approval or public installation. Main-app deployment, billing changes and paid AI calls are separate from store preparation.
+Prepared November 8, 2026. Companion behavior was verified at source commit `ee829e37a01c054d794204890a7d2a1e28a66980`; release assets and packaging were pushed as `dddcb624af9bfb6e1846b427cf1c55db8e0eeaa2` before the later cloud milestones below. The user has authorized the remaining Chrome Web Store publishing work and reports completing publisher registration. This document supplies reviewable listing and disclosure text, without claiming data-access approval or public installation. Main-app deployment, billing changes and paid AI calls are separate from store preparation.
 
 ## Current store draft and target release
 
-The Chrome Web Store draft item ID is **`bdojcligphldnmdchmlhgibhlldgflcd`**. Google ownership has been verified and a matching Chrome-extension OAuth client has been created. The planned configured release is **version 0.1.1**. These are preparation milestones, not proof of approval, public installation, public OAuth eligibility or a successful configured-package test.
+The Chrome Web Store draft item ID is **`bdojcligphldnmdchmlhgibhlldgflcd`**. Google ownership has been verified and a matching Chrome-extension OAuth client has been created. The configured release is **version 0.1.1**. These are preparation milestones, not proof of store approval, public installation, data-access verification or a successful configured-package test.
 
 The owner has now confirmed the Package tab displays **0.1.1** after the configured replacement upload. Its SHA-256 is recorded in [the release record](CHROME-RELEASE-2026-11-08.md). Listing, review and OAuth milestones remain separate.
 
-The intended public pages are:
+The following public pages returned HTTP 200 with correct titles and their exact URLs were saved in Google branding:
 
 - Homepage and setup: https://tidepath.muntasersyed.com/extension
 - Privacy: https://tidepath.muntasersyed.com/extension/privacy
 - Terms: https://tidepath.muntasersyed.com/extension/terms
 
-Their static HTML is prepared under `outputs/chrome-web-store/site/extension/`; these URLs are **planned, not yet verified live**. Deploy and check each before using it as a completed submission prerequisite. No public store install URL is claimed while the item is unapproved.
+Their static HTML is prepared under `outputs/chrome-web-store/site/extension/` and was deployed by the separate website chat. Google audience is now **In production**; branding was verified and then published, with Google confirming it is being shown to users. **Data access remains not verified.** The sensitive/restricted justifications and Drive productivity choice were entered in the data-access form but remain **unsaved**: its YouTube link is blank and Save is disabled. No data-access submission or public store install URL is claimed.
 
-Store-package users run the source companion with the store ID above; they do not create their own OAuth client or modify the installed manifest. Use `--data-file .data/local-sheets/store-google-journal.json` for real Google testing, or `--demo --data-file .data/local-sheets/store-demo-journal.json` for fictional rehearsal. Public Google access remains pending verification; an eligible test account is still required for real Google acceptance. The existing guide's user-owned OAuth setup applies only to locally built unpacked installations.
+Store-package users run the source companion with the store ID above; they do not create their own OAuth client or modify the installed manifest. Use `--data-file .data/local-sheets/store-google-journal.json` for real Google testing, or `--demo --data-file .data/local-sheets/store-demo-journal.json` for fictional rehearsal. In production audience does not establish unrestricted or verified Google access; an authorized review account must still complete the actual new-client flow. The existing guide's user-owned OAuth setup applies only to locally built unpacked installations.
+
+The owner reports pasting the description and choosing **Productivity → Workflow & Planning**, **English**, the 128-pixel icon and first two screenshots. The third screenshot is still being guided. Store portal automation is blocked, so these fields and the upload are owner-reported and do not establish that all fields are saved or the item is submitted. The supplied public key was validated against the store ID and a separate `out/tidepath-extension-store-test` folder was prepared; actual Chrome loading and store-client acceptance remain pending.
 
 ## Listing fields
 
 | Field | Prepared value |
 | --- | --- |
 | Name | Tidepath — local Sheets review |
-| Planned version | 0.1.1 |
+| Configured version | 0.1.1; upload confirmed by owner |
 | Store draft item ID | `bdojcligphldnmdchmlhgibhlldgflcd` |
 | Short description | Review selected Google Sheets locally and create verified correction copies. Optional AI uses your own local API key. |
 | Language | English |
-| Category | Productivity, using the closest available dashboard category |
+| Category | Productivity → Workflow & Planning; owner-reported selection |
 | Support contact | jemsbhai@gmail.com |
 | Companion source and setup | [Extension guide](https://github.com/jemsbhai/buildbettercode4miami/blob/codex/tidepath-mvp/docs/EXTENSION.md) |
 | Issues | [Repository issues](https://github.com/jemsbhai/buildbettercode4miami/issues) — fictional examples and redacted diagnostics only |
-| Privacy policy content | [CHROME-EXTENSION-PRIVACY.md](CHROME-EXTENSION-PRIVACY.md); planned URL `https://tidepath.muntasersyed.com/extension/privacy`, not yet verified live |
+| Privacy policy content | [CHROME-EXTENSION-PRIVACY.md](CHROME-EXTENSION-PRIVACY.md); [live public policy](https://tidepath.muntasersyed.com/extension/privacy), HTTP 200 and saved in Google branding |
 
 ### Detailed description — ready to paste after Google access is configured
 
@@ -124,7 +126,7 @@ The reviewer must be able to reproduce the submitted package's advertised behavi
 
 ### Real Google review — required before claiming public Google functionality
 
-The submitted manifest must include a Chrome-extension OAuth client bound to **the store item's actual extension ID**. A Google reviewer/test account must be eligible for that client's audience and granted scopes. A local Testing project restricted to the developer's account does not provide reviewer access. Do not ask reviewers to alter the installed store manifest or borrow the developer's Google password. Record the final client/audience verification outcome in the submission; a public client ID is not a client secret.
+The configured 0.1.1 package includes a Chrome-extension OAuth client bound to store ID **`bdojcligphldnmdchmlhgibhlldgflcd`**. The audience is In production and branding is published, but data access is not verified and actual new-client acceptance has not yet been demonstrated. An authorized reviewer must complete the client's real consent flow; audience status alone does not prove access. Do not ask reviewers to alter the installed store manifest or borrow the developer's Google password. The separate local store-ID test folder is prepared for owner acceptance after the active demo safely ends. See [the OAuth packet](CHROME-OAUTH-VERIFICATION.md) for both retained clients and the required recording.
 
 1. Stop fictional mode cleanly, then start without `--demo`, using a new journal:
 
@@ -156,8 +158,9 @@ Uninstalling the extension does not remove companion source, dependencies, local
 ## Submission gates to record
 
 - Confirm the actual publisher account/fee status in the portal and record the new store item ID, uploaded version and package digest. User-reported registration is not a store approval result.
-- Supply the final icon/screenshots, public setup/support/privacy links and these completed declarations. Publish the privacy policy at a stable URL before submission; a local Markdown draft is not a live policy link.
-- Bind an appropriate Google OAuth client to the store item ID; verify actual Google functionality and reviewer access on the submitted package. The unconfigured source manifest has no OAuth client and cannot perform real Google authorization by itself. Rebuilding a private unpacked package is not a solution for ordinary store users.
+- Confirm/save the third screenshot and remaining portal declarations. The dedicated public setup/privacy/terms pages are live; enter the exact links in the store fields and verify their saved state. Portal entries remain owner-reported until evidence is supplied.
+- Verify actual Google functionality and reviewer access on the configured store package. The separate public-key-aligned test folder is prepared but has not been loaded. Preserve the active demo and its original client; switch companion IDs deliberately only after the demo safely ends. The default source manifest remains unconfigured.
+- Supply the owner's YouTube recording to the open Google form; the two entered justifications and Drive productivity category are currently unsaved because the video field is blank. Save and complete data-access submission separately from the already-published branding.
 - Disclose source installation of the companion before installation. There is no bundled executable, signed installer, automatic companion update or automatic startup. Only claim platforms whose complete setup has been verified; current live extension acceptance is Windows x64.
 - Review loopback HTTP and local journal protection honestly. Internet API requests use HTTPS, but the local bearer-token connection and on-disk journal are not encrypted by this implementation. Do not certify an unimplemented encryption guarantee.
 - Record review submission, approval, publication and the resulting actual install URL separately. Chrome approval does not complete Google's sensitive/restricted-scope verification. No successful public-install or public-OAuth result is claimed by this document.
